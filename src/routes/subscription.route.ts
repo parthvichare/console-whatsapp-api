@@ -19,5 +19,6 @@ SubscriptionRoute.post('/:planId/activate',SubscriptionController.subscribePlan)
 SubscriptionRoute.post('/verify-payment',SubscriptionController.activateUserPlanAfterPayment)
 
 
+
 export default SubscriptionRoute;
 

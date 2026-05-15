@@ -1,5 +1,5 @@
 import { Worker, Job } from 'bullmq';
-import redisConfig from '@surefy/config/redis.config';
+import { redisConnection } from '@surefy/config/redis.config'
 import { CampaignExecutionJobData } from '../campaignExecution.queue';
 import CampaignModel from '@surefy/console/models/campaign.model';
 import CampaignMessageModel from '@surefy/console/models/campaignMessage.model';
@@ -267,11 +267,11 @@ function extractTemplateVariables(text: string): string[] {
 
 // Create and start the worker
 console.log('📦 Initializing Campaign Execution Worker...');
-console.log('📡 Redis config:', {
-  host: redisConfig.host,
-  port: redisConfig.port,
-  db: redisConfig.db,
-});
+// console.log('📡 Redis config:', {
+//   host: redisConnection.host,
+//   port: redisConnection.port,
+//   db: redisConnection.db,
+// });
 
 export const campaignExecutionWorker = new Worker<CampaignExecutionJobData>(
   'campaign-execution',
@@ -280,7 +280,7 @@ export const campaignExecutionWorker = new Worker<CampaignExecutionJobData>(
     return await processCampaignExecution(job);
   },
   {
-    connection: redisConfig,
+    connection: redisConnection,
     concurrency: 1, // Process 1 campaign at a time to avoid rate limits
     limiter: {
       max: 1, // Max 1 job

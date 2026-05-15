@@ -9,44 +9,66 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { errorHandler } from './middleware/errorHandler';
 import HealthRoute from './routes/health.route';
+import db from '@surefy/console/database';
 
 interface RouteConfig {
   basePath: string;
   route: Router;
 }
 
-const createBaseApp = (routes: RouteConfig[] = []): Application => {
+const createBaseApp = async (routes: RouteConfig[] = []): Promise<Application> => {
   const app: Application = express();
   const PORT = process.env.PORT || 8000;
 
   // Middleware
-  app.use(helmet({
-    contentSecurityPolicy: false, // Allow Swagger UI to load
-  }));
+  app.use(
+    helmet({
+      contentSecurityPolicy: false,
+    })
+  );
+
   app.use(cors());
   app.use(hpp());
   app.use(compression());
   app.use(express.json({ limit: '10mb' }));
   app.use(express.urlencoded({ extended: true, limit: '10mb' }));
   app.use(morgan('dev'));
-  app.use(express.json());
 
   // Swagger Documentation
   try {
     const swaggerPath = path.join(__dirname, '../../../swagger.json');
+
     if (fs.existsSync(swaggerPath)) {
       const swaggerDocument = JSON.parse(fs.readFileSync(swaggerPath, 'utf8'));
-      app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, {
-        customCss: '.swagger-ui .topbar { display: none }',
-        customSiteTitle: 'Console API Documentation',
-      }));
+
+      app.use(
+        '/api-docs',
+        swaggerUi.serve,
+        swaggerUi.setup(swaggerDocument, {
+          customCss: '.swagger-ui .topbar { display: none }',
+          customSiteTitle: 'Console API Documentation',
+        })
+      );
+
       console.log('📚 Swagger UI available at /api-docs');
     }
   } catch (error) {
-    console.warn('⚠️  Swagger documentation not available');
+    console.warn('⚠️ Swagger documentation not available');
   }
 
-  // Health check route
+  // Database Connection Check
+  try {
+    await db.raw('SELECT 1');
+
+    console.log('✅ Database connected successfully');
+  } catch (error) {
+    console.error('❌ Unable to connect to database');
+    console.error(error);
+
+    process.exit(1);
+  }
+
+  // Health route
   app.use('/health', HealthRoute);
 
   // Register custom routes
@@ -54,7 +76,7 @@ const createBaseApp = (routes: RouteConfig[] = []): Application => {
     app.use(basePath, route);
   });
 
-  // 404 handler - must be after all routes
+  // 404 handler
   app.use((req, res) => {
     res.status(404).json({
       success: false,
@@ -67,10 +89,10 @@ const createBaseApp = (routes: RouteConfig[] = []): Application => {
     });
   });
 
-  // Error handler (must be last)
+  // Error handler
   app.use(errorHandler);
 
-  // Start server only if not in worker mode
+  // Start server
   if (process.env.WORKER_MODE !== 'true') {
     app.listen(PORT, () => {
       console.log(`🚀 Server is running on port ${PORT}`);

@@ -14,6 +14,7 @@ const config: { [key: string]: Knex.Config } = {
     client: 'pg',
     debug: false,
     connection: process.env.DATABASE_URL,
+
     // connection: "postgres://surefydev:Surefy^23dK@13.202.117.242:5432/surefy_consoledb",
     migrations: {
       directory: path.join(basePath, 'src/database/migrations'),

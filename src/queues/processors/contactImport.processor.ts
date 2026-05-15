@@ -1,5 +1,5 @@
 import { Worker, Job } from 'bullmq';
-import redisConfig from '@surefy/config/redis.config';
+import { redisConnection } from '@surefy/config/redis.config'
 import { ContactImportJobData } from '../contactImport.queue';
 import ImportJobModel from '@surefy/console/models/importJob.model';
 import ContactModel from '@surefy/console/models/contact.model';
@@ -306,7 +306,7 @@ export const contactImportWorker = new Worker<ContactImportJobData>(
     return await processContactImport(job);
   },
   {
-    connection: redisConfig,
+    connection: redisConnection,
     concurrency: 2, // Process 2 import jobs concurrently
     limiter: {
       max: 5, // Max 5 jobs

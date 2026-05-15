@@ -1,5 +1,5 @@
 import { Queue } from 'bullmq';
-import redisConfig from '@surefy/config/redis.config';
+import { redisConnection } from '@surefy/config/redis.config'
 
 export interface CampaignExecutionJobData {
   campaignId: string;
@@ -8,7 +8,7 @@ export interface CampaignExecutionJobData {
 }
 
 export const campaignExecutionQueue = new Queue<CampaignExecutionJobData>('campaign-execution', {
-  connection: redisConfig,
+  connection: redisConnection,
   defaultJobOptions: {
     attempts: 3,
     backoff: {

@@ -332,10 +332,6 @@ class SubscriptionController {
     return successResponse(req, res, 'Free trial activated successfully', activatedTrial, HttpStatusCode.OK);
   })
 
-  cancelSubscription = tryCatchAsync(async(req:AuthRequest,res:Response)=>{
-    const{planId} = req.body
-    const cancelSubscription = await subscriptionService.cancelSubscription(planId)
-  })
 }
 
 export default new SubscriptionController();

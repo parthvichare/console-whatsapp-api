@@ -1,5 +1,5 @@
 import { Queue } from 'bullmq';
-import redisConfig from '@surefy/config/redis.config';
+import { redisConnection } from '@surefy/config/redis.config'
 import { BulkSendMessageDto } from '@surefy/console/interfaces/message.interface';
 
 export interface BulkMessageSendJobData {
@@ -8,7 +8,7 @@ export interface BulkMessageSendJobData {
 }
 
 export const bulkMessageSendQueue = new Queue<BulkMessageSendJobData>('bulk-message-send', {
-  connection: redisConfig,
+  connection: redisConnection,
   defaultJobOptions: {
     attempts: 3,
     backoff: {

@@ -1,5 +1,5 @@
 import { Worker, Job } from 'bullmq';
-import redisConfig from '@surefy/config/redis.config';
+import { redisConnection } from '@surefy/config/redis.config'
 import { BulkMessageSendJobData } from '../bulkMessageSend.queue';
 import MessageService from '@surefy/console/services/message.service';
 import PhoneNumberModel from '@surefy/console/models/phoneNumber.model';
@@ -115,7 +115,7 @@ export const bulkMessageSendWorker = new Worker<BulkMessageSendJobData>(
     return await processBulkMessageSend(job);
   },
   {
-    connection: redisConfig,
+    connection: redisConnection,
     concurrency: 2, // Process 2 bulk jobs at a time
     limiter: {
       max: 10, // Max 10 jobs

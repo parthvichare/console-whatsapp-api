@@ -230,10 +230,6 @@ class subscriptionService {
     return updateSubscriptionPlan;
   }
 
-  async cancelSubscription(planId:string){
-    const cancelActiveSubscription = await subscriptionModel.findPlanId(planId)
-  }
-
 }
 
 export default new subscriptionService();

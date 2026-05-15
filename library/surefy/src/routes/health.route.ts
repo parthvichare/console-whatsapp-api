@@ -1,5 +1,7 @@
 import { Router, Request, Response } from 'express';
-import db from '../database';
+import db from '@surefy/console/database';
+
+
 
 const HealthRoute = Router();
 

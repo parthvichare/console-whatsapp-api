@@ -1,5 +1,6 @@
 import { Queue } from 'bullmq';
-import redisConfig from '@surefy/config/redis.config';
+import { redisConnection } from '@surefy/config/redis.config'
+
 
 export interface ContactImportJobData {
   jobId: string; // Import job ID from database
@@ -17,7 +18,7 @@ export interface ContactImportJobData {
 }
 
 export const contactImportQueue = new Queue<ContactImportJobData>('contact-import', {
-  connection: redisConfig,
+  connection: redisConnection,
   defaultJobOptions: {
     attempts: 3,
     backoff: {

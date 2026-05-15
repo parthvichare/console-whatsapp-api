@@ -1,3 +1,27 @@
+// import knex from 'knex';
+// import dotenv from 'dotenv';
+
+// dotenv.config();
+
+// const db = knex({
+//   client: 'pg',
+//   connection: {
+//     host: 'postgres', // FORCE LOCAL
+//     port: 5432,
+//     user: 'postgres',
+//     password: 'password',
+//     database: 'console_db',
+//   },
+//   pool: {
+//     min: 0,
+//     max: 5,
+//     acquireTimeoutMillis: 10000, // 🔥 important
+//   },
+// });
+
+// export default db;
+
+
 import knex from 'knex';
 import dotenv from 'dotenv';
 
@@ -5,17 +29,21 @@ dotenv.config();
 
 const db = knex({
   client: 'pg',
-  connection: {
-    host: 'localhost', // FORCE LOCAL
-    port: 5432,
-    user: 'postgres',
-    password: 'password',
-    database: 'console_db',
-  },
+
+  // connection: {
+  //   host: 'postgres',
+  //   port: 5432,
+  //   user: 'postgres',
+  //   password: 'password',
+  //   database: 'console_db',
+  // },
+
+
+  connection: process.env.DATABASE_URL,
   pool: {
     min: 0,
     max: 5,
-    acquireTimeoutMillis: 10000, // 🔥 important
+    acquireTimeoutMillis: 10000,
   },
 });
 
