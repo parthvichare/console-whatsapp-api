@@ -21,7 +21,8 @@ ContactRoute.put('/tags/:id', ContactController.updateTag);
 ContactRoute.delete('/tags/:id', ContactController.deleteTag);
 
 // Contact CRUD
-ContactRoute.post('/', checkPlanLimit('Contact'), ContactController.createContact);
+// ContactRoute.post('/', checkPlanLimit('Contact'), ContactController.createContact);
+ContactRoute.post('/', ContactController.createContact);
 ContactRoute.get('/', ContactController.getContacts);
 ContactRoute.get('/:id', ContactController.getContactById);
 ContactRoute.put('/:id', ContactController.updateContact);
@@ -35,7 +36,8 @@ ContactRoute.post('/import/preview', uploadXLSXMiddleware, ContactController.pre
 ContactRoute.post('/import', uploadXLSXMiddleware, ContactController.importContacts);
 
 // Contact tags management
-ContactRoute.post('/:id/tags',checkPlanLimit('Contact'), ContactController.addTags);
+ContactRoute.post('/:id/tags', ContactController.addTags);
+// ContactRoute.post('/:id/tags',checkPlanLimit('Contact'), ContactController.addTags);
 ContactRoute.delete('/:id/tags', ContactController.removeTags);
 // ContactRoute.get()
 
