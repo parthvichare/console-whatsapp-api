@@ -594,6 +594,12 @@ class ContactService {
     const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
     return buffer;
   }
+
+
+  async userAssignedContact(userId:string){
+    const userAssignedContact = await ContactModel.getAssignedUser(userId)
+    return userAssignedContact
+  }
 }
 
 export default new ContactService();

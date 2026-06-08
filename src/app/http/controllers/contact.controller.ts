@@ -334,6 +334,14 @@ class ContactController {
     res.setHeader('Content-Disposition', 'attachment; filename=contacts_import_sample.xlsx');
     res.send(buffer);
   });
+
+  /**
+   * User Assigned Contact
+   */
+  userAssignedContact = tryCatchAsync(async(req:AuthRequest,res:Response)=>{
+    const userAssignedContact = await ContactService.userAssignedContact(req.userId!)
+    successResponse(req,res,"Assigned Contact Fetch")
+  })
 }
 
 export default new ContactController();
