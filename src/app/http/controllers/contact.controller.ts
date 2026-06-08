@@ -7,6 +7,7 @@ import HTTP400Error from '@surefy/exceptions/HTTP400Error';
 import * as path from 'path';
 import * as fs from 'fs';
 import userPlansModel from '../../models/userPlans.model';
+import contactService from '@surefy/console/services/contact.service';
 
 class ContactController {
   /**
@@ -334,6 +335,14 @@ class ContactController {
     res.setHeader('Content-Disposition', 'attachment; filename=contacts_import_sample.xlsx');
     res.send(buffer);
   });
+
+  /**
+   * User Assigned Contact
+   */
+  assignedContactToUser = tryCatchAsync(async(req:AuthRequest,res:Response)=>{
+    const userAssignedContact = await ContactService.userAssignedContact(req.userId!)
+    successResponse(req,res,"Assigned Contact Fetch",userAssignedContact, HttpStatusCode.OK)
+  })
 }
 
 export default new ContactController();

@@ -8,9 +8,9 @@ import XLSXParserService from './xlsxParser.service';
 import HTTP400Error from '@surefy/exceptions/HTTP400Error';
 import HTTP404Error from '@surefy/exceptions/HTTP404Error';
 import { contactImportQueue } from '../../queues/contactImport.queue';
-import * as fs from 'fs';
+import contactModel from '../models/contact.model';
 import * as path from 'path';
-import { filter } from 'lodash';
+
 
 class ContactService {
   /**
@@ -593,6 +593,11 @@ class ContactService {
     // Generate buffer
     const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
     return buffer;
+  }
+
+  async userAssignedContact(userId:string){
+    const userAssignedContact = await contactModel.getAssignedUser(userId)
+    return userAssignedContact
   }
 }
 
