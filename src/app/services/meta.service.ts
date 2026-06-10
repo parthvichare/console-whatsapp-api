@@ -1,5 +1,8 @@
 import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 import HTTP400Error from '@surefy/exceptions/HTTP400Error';
+import { bucket } from '@surefy/config/firebase.config';
+import fs from 'fs';
+import path from 'path';
 
 class MetaService {
   private client: AxiosInstance;
@@ -35,6 +38,73 @@ class MetaService {
         details: error.response?.data || error.message,
       });
     }
+  }
+
+  /**
+   * Handle Media,file,document
+   */
+  async handleMedia(mediaId: string): Promise<any> {
+    try {
+      const mediaRes = await this.client.get(`/${mediaId}`);
+      const mediaUrl = mediaRes.data.url;
+      console.log("📥 Media URL:", mediaUrl);
+
+      // Step 2: Download image
+      const downloadRes = await axios.get(mediaUrl, {
+        responseType: 'arraybuffer',
+        headers: {
+          Authorization: `Bearer ${this.accessToken}`,
+        },
+      });
+
+      const buffer = Buffer.from(downloadRes.data);
+
+      // Step 3: Create filename
+      const fileName = `${mediaId}_${Date.now()}.jpg`;
+
+      // Step 4: Upload to Firebase Storage
+      const file = bucket.file(fileName);
+
+      await file.save(buffer, {
+        metadata: {
+          contentType: 'image/jpeg',
+        },
+      });
+
+      // Make file public
+      await file.makePublic();
+
+      const firebaseUrl = `https://storage.googleapis.com/${bucket.name}/${file.name}`;
+
+      console.log("✅ Firebase URL:", firebaseUrl);
+
+      // Optional: Save locally
+      const uploadsDir = path.join(__dirname, '../uploads');
+      fs.mkdirSync(uploadsDir, { recursive: true });
+
+      const filePath = path.join(uploadsDir, fileName);
+      fs.writeFileSync(filePath, buffer);
+
+      console.log(`✅ Image saved locally: ${filePath}`);
+
+      const imageRecord = {
+        firebaseUrl,
+        filename: fileName,
+        path: filePath,
+        mime_type: 'image/jpeg',
+      };
+
+      console.log("📦 Image record:", imageRecord);
+
+      return imageRecord;
+    } catch (error: any) {
+      console.error('Meta API Error - Mark as Read:', error.response?.data || error.message);
+      throw new HTTP400Error({
+        message: 'Failed to mark message as read',
+        details: error.response?.data || error.message,
+      });
+    }
+
   }
 
   /**

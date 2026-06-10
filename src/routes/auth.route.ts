@@ -9,6 +9,8 @@ AuthRoute.post('/login', AuthController.login);
 AuthRoute.post('/register', AuthController.register); 
 AuthRoute.post('/register-company', AuthController.onboard);
 
+AuthRoute.post('/stored-chat-session',AuthController.storedChatSession)
+
 AuthRoute.get("/verify", AuthController.verify)
 
 //Reset-password

@@ -30,16 +30,13 @@ dotenv.config();
 const db = knex({
   client: 'pg',
 
-  // connection: {
-  //   host: 'postgres',
-  //   port: 5432,
-  //   user: 'postgres',
-  //   password: 'password',
-  //   database: 'console_db',
-  // },
+  connection: {
+    connectionString: process.env.DATABASE_URL,
+    ssl: {
+      rejectUnauthorized: false,
+    },
+  },
 
-
-  connection: process.env.DATABASE_URL,
   pool: {
     min: 0,
     max: 5,

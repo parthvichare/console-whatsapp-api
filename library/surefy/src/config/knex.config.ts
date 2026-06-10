@@ -4,50 +4,57 @@ import dotenv from 'dotenv'
 
 export const basePath = path.resolve(__dirname, '../../../../')
 
+dotenv.config({
+  path: path.join(basePath, '.env'),
+})
 
-dotenv.config({ path: path.join(basePath, '.env') })
+console.log('DATABASE_URL:', process.env.DATABASE_URL)
 
-console.log("dATABASE ",process.env.DATABASE_URL)
-
-const config: { [key: string]: Knex.Config } = {
-  development: {
-    client: 'pg',
-    debug: false,
-    connection: process.env.DATABASE_URL,
-
-    // connection: "postgres://surefydev:Surefy^23dK@13.202.117.242:5432/surefy_consoledb",
-    migrations: {
-      directory: path.join(basePath, 'src/database/migrations'),
-    },
-    seeds: {
-      directory: path.join(basePath, 'src/database/seeds'),
-    },
-  },
-  production: {
-    client: 'pg',
-    connection: process.env.DATABASE_URL,
-    // connection: "postgres://surefydev:Surefy^23dK@13.202.117.242:5432/surefy_consoledb",
-    migrations: {
-      directory: path.join(basePath, 'src/database/migrations'),
-    },
-    seeds: {
-      directory: path.join(basePath, 'src/database/seeds'),
-    },
+const connection: Knex.StaticConnectionConfig = {
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false,
   },
 }
 
-// const config: { [key: string]: Knex.Config } = {
-//   development: {
-//     client: 'pg',
-//     connection: process.env.DATABASE_URL,
+const config: Record<string, Knex.Config> = {
+  development: {
+    client: 'pg',
+    debug: false,
+    connection,
 
-//     migrations: {
-//       directory: './dist/database/migrations', // ✅ FIX
-//     },
-//     seeds: {
-//       directory: './dist/database/seeds',
-//     },
-//   },
-// };
+    migrations: {
+      directory: path.join(basePath, 'src/database/migrations'),
+    },
+
+    seeds: {
+      directory: path.join(basePath, 'src/database/seeds'),
+    },
+
+    pool: {
+      min: 2,
+      max: 10,
+    },
+  },
+
+  production: {
+    client: 'pg',
+    debug: false,
+    connection,
+
+    migrations: {
+      directory: path.join(basePath, 'src/database/migrations'),
+    },
+
+    seeds: {
+      directory: path.join(basePath, 'src/database/seeds'),
+    },
+
+    pool: {
+      min: 2,
+      max: 10,
+    },
+  },
+}
 
 export default config

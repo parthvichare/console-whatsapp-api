@@ -222,6 +222,10 @@ class AuthController {
       }
     });
   }
+
+  async storedChatSession(req:Request,res:Response){
+    successResponse(req,res,"Chat session stored successfully")
+  }
 }
 
 export default new AuthController();

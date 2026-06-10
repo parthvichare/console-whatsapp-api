@@ -6,6 +6,7 @@ import messageService from './app/services/message.service';
 import nodemailer from "nodemailer";
 import axios from 'axios';
 import { parsePhoneNumberFromString } from "libphonenumber-js";
+import metaService from './app/services/meta.service';
 
 export const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
@@ -167,28 +168,23 @@ export function safeJSON(data: any) {
 }
 
 
-// lib/mail.ts
-// import nodemailer from "nodemailer";
 
-// export const transporter = nodemailer.createTransport({
-//   host: process.env.SMTP_HOST,
-//   port: Number(process.env.SMTP_PORT),
-//   secure: process.env.SMTP_SECURE === "true",
-//   auth: {
-//     user: process.env.SMTP_USER,
-//     pass: process.env.SMTP_PASS,
-//   },
-// });
+export const downloadImage = async (mediaId: string) => {
+    console.log("MediaId:", mediaId);
+    try {
+      const mediaUrl = metaService.handleMedia(mediaId)
+      console.log("Media Url",mediaUrl)
+      return mediaUrl
+    } catch (error: any) {
+        console.error(
+            '❌ Error downloading image:',
+            error.response?.status,
+            error.response?.data || error.message
+        );
+        throw error;
+    }
+};
 
-// export async function sendEmail(to: string, subject: string, text: string, html?: string) {
-//   return transporter.sendMail({
-//     from: `"Your App Name" <${process.env.SMTP_USER}>`,
-//     to,
-//     subject,
-//     text,
-//     html,
-//   });
-// }
 
 export default function sendEmail(to: string, subject: string, text: string,html?: string) {
   console.log(`📧 Sending email to ${to}: ${subject}\n${text}`);
@@ -423,7 +419,7 @@ export async function buildResponse(node: any) {
   // }
 
   const key = data?.key;
-  console.log("Data flow", data)
+  console.log("Data flow", data, key)
 
   if (key === "@whatsapp/ask-question") {
     return {
@@ -432,10 +428,10 @@ export async function buildResponse(node: any) {
     };
   }
 
-  if(key === "@whatsapp/send-text-message"){
-    return{
+  if (key === "@whatsapp/send-text-message") {
+    return {
       type: "text",
-      text: data?.attributes?.message?.text?.body|| ""
+      text: data?.attributes?.message?.text?.body || ""
     }
   }
 
@@ -481,53 +477,6 @@ export async function buildResponse(node: any) {
     };
   }
 
-  // if(key === "@http/http-request"){
-  //   const attributes = data.attributes
-  //   const method = attributes.method || "GET"
-  //   const url = attributes.url
-
-  //   try{
-  //     const response = await axios({method,url})
-  //     const responseData = response.data
-  //     console.log("HTTP response", responseData);
-
-  //     // Store RESPONSE in session variables
-  //     const updatedVariables = {
-  //       ...(session.variables || {}),
-  //       http_response: responseData
-  //     }
-
-  //     await chatSessionModel.update(session.id,{
-  //       variables: updatedVariables
-  //     })
-
-  //     // FIND NEXT NODE
-  //     const edge = bot.edges.find((e:any)=> e.source === session.current_node_id)
-  //     if(!edge) return null;
-
-  //     const nextNode = bot.nodes.find(
-  //       (n:any)=>n.id === edge.target
-  //     );
-
-  //     if(!nextNode) return null
-
-  //     // Update current NODE
-  //     await chatSessionModel.update(session.id,{
-  //       current_node_id: nextNode.id
-  //     })
-
-  //     // CONDITION NODE Execution
-  //     return await executeNode({
-  //       bot,
-  //       session
-  //     })
-
-
-  //   }catch(error:any){
-
-  //   }
-  // }
-
   if (key === "@whatsapp/ask-location") {
 
     return {
@@ -549,46 +498,40 @@ export async function buildResponse(node: any) {
     };
   }
 
-  
+
   // 📋 LIST MESSAGE BUILDER
   if (key === "@whatsapp/send-list-message") {
-    const rows = (data.listItems || []).map((item: any, i: number) => ({
-      id: item.id || `row_${i}`,
-      title: item.title || 'Option',
-      description: item.description || ""
-    }))
+    const interactiveData =
+      data.attributes?.message?.interactive || {};
 
-    const interactive: any = {
+    const sections =
+      interactiveData.action?.sections || [];
+
+    const interactive = {
       type: "list",
 
-      // ✅ HEADER (optional)
-      header: data.header
-        ? (typeof data.header === "string"
-          ? { type: "text", text: data.header }
-          : data.header)
-        : undefined,
+      header: interactiveData.header,
 
-      // ✅ BODY (required)
-      body: typeof data.body === "string"
-        ? { text: data.body }
-        : data.body || { text: "Choose an option" },
+      body: interactiveData.body || {
+        text: "Choose an option"
+      },
 
-      // ✅ FOOTER (optional)
-      footer: data.footer
-        ? (typeof data.footer === "string"
-          ? { text: data.footer }
-          : data.footer)
-        : undefined,
+      footer: interactiveData.footer,
 
-      // ✅ ACTION (required)
       action: {
-        button: data.listButtonText || "Select Option",
-        sections: [
-          {
-            title: data.listSectionTitle || "Options",
-            rows
-          }
-        ],
+        button:
+          interactiveData.action?.button ||
+          "Select Option",
+
+        sections: sections.map((section: any) => ({
+          title: section.title || "Options",
+
+          rows: (section.rows || []).map((row: any) => ({
+            id: row.id,
+            title: row.title,
+            description: row.description || ""
+          }))
+        }))
       }
     };
 

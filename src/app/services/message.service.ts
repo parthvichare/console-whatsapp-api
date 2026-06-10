@@ -376,52 +376,82 @@ class MessageService {
    * Handle Send ChatBot message
    */
   async sendChatBotMessage(phoneNumberId: string, to: string, response: any) {
-      console.log('Response',JSON.stringify(response))
-      try {
-        let metaPayload: any = {
-          messaging_product: "whatsapp",
-          to: to,
+    console.log('Response', JSON.stringify(response))
+
+    const phoneNumber = await PhoneNumberModel.findByPhoneNumberId(phoneNumberId);
+    if (!phoneNumber) {
+      console.warn(`Phone number not found: ${phoneNumberId}`);
+      return;
+    }
+
+    try {
+      let metaPayload: any = {
+        messaging_product: "whatsapp",
+        to: to,
+      };
+
+      metaPayload.type = response.type
+      metaPayload.interactive = response.interactive
+
+      // // ✅ TEXT MESSAGE
+      if (response.type === "text") {
+        metaPayload.type = "text";
+        metaPayload.text = {
+          body: response.text,
         };
-
-        metaPayload.type = response.type
-        metaPayload.interactive = response.interactive
-
-        // // ✅ TEXT MESSAGE
-        if (response.type === "text") {
-          metaPayload.type = "text";
-          metaPayload.text = {
-            body: response.text,
-          };
-        }
-
-        // // ✅ INTERACTIVE BUTTON MESSAGE
-        // if (response.type === "interactive") {
-        //   metaPayload.type = "interactive";
-        //   metaPayload.interactive = {
-        //     type: "button",
-        //     body: {
-        //       text: response.interactive.body.text,
-        //     },
-        //     action: {
-        //       buttons: response.interactive.action.buttons.map((btn: any) => ({
-        //         type: "reply",
-        //         reply: {
-        //           id: btn.reply.id,
-        //           title: btn.reply.title,
-        //         },
-        //       })),
-        //     },
-        //   };
-        // }
-
-        console.log("Meta Payload Message Service",JSON.stringify(metaPayload))
-        const metaResponse = await MetaService.sendMessage(phoneNumberId, metaPayload);
-        console.log("✅ Message Sent:", metaResponse.data);
-        return metaResponse.data;
-      } catch (error: any) {
-        console.error("❌ Send Message Error:", error?.response?.data || error.message);
-        return null;
       }
+
+
+      // // ✅ INTERACTIVE BUTTON MESSAGE
+      // if (response.type === "interactive") {
+      //   metaPayload.type = "interactive";
+      //   metaPayload.interactive = {
+      //     type: "button",
+      //     body: {
+      //       text: response.interactive.body.text,
+      //     },
+      //     action: {
+      //       buttons: response.interactive.action.buttons.map((btn: any) => ({
+      //         type: "reply",
+      //         reply: {
+      //           id: btn.reply.id,
+      //           title: btn.reply.title,
+      //         },
+      //       })),
+      //     },
+      //   };
+      // }
+
+      console.log("Meta Payload Message Service", JSON.stringify(metaPayload))
+      const metaResponse = await MetaService.sendMessage(phoneNumberId, metaPayload);
+      
+      console.log("✅ Message Sent:", metaResponse);
+
+
+      const message = await MessageModel.create({
+        user_id: phoneNumber.user_id,
+        company_id: phoneNumber.company_id,
+        profile_name: "",
+        phone_number_id: phoneNumber.id,
+        wamid: metaResponse.messages[0].id,
+        direction: 'inbound',
+        type: metaPayload.type,
+        from_phone: phoneNumber.display_phone_number,
+        to_phone: to,
+        status: 'sent',
+        content: metaPayload,
+        context: "",
+        delivered_at: new Date(),
+      });
+
+      console.log('chatbot mesage', message)
+
+
+      return metaResponse.data;
+    } catch (error: any) {
+      console.error("❌ Send Message Error:", error?.response?.data || error.message);
+      return null;
+    }
   }
 
 
