@@ -401,27 +401,6 @@ class MessageService {
         };
       }
 
-
-      // // ✅ INTERACTIVE BUTTON MESSAGE
-      // if (response.type === "interactive") {
-      //   metaPayload.type = "interactive";
-      //   metaPayload.interactive = {
-      //     type: "button",
-      //     body: {
-      //       text: response.interactive.body.text,
-      //     },
-      //     action: {
-      //       buttons: response.interactive.action.buttons.map((btn: any) => ({
-      //         type: "reply",
-      //         reply: {
-      //           id: btn.reply.id,
-      //           title: btn.reply.title,
-      //         },
-      //       })),
-      //     },
-      //   };
-      // }
-
       console.log("Meta Payload Message Service", JSON.stringify(metaPayload))
       const metaResponse = await MetaService.sendMessage(phoneNumberId, metaPayload);
       
@@ -434,7 +413,7 @@ class MessageService {
         profile_name: "",
         phone_number_id: phoneNumber.id,
         wamid: metaResponse.messages[0].id,
-        direction: 'inbound',
+        direction: 'outbound',
         type: metaPayload.type,
         from_phone: phoneNumber.display_phone_number,
         to_phone: to,
@@ -481,18 +460,6 @@ class MessageService {
       }
     }
 
-    // Calculate total estimated cost
-    // const totalEstimatedCost = messages.reduce((sum, msg) => {
-    //   return sum + this.calculateMessageCost(msg.type);
-    // }, 0);
-
-    // Check if company has sufficient credits
-    // if (company.credit_balance < totalEstimatedCost) {
-    //   throw new HTTP400Error({
-    //     message: `Insufficient credits. Required: ${totalEstimatedCost.toFixed(2)}, Available: ${company.credit_balance.toFixed(2)}`,
-    //   });
-    // }
-
     const normalizedMessages = messages.map((msg) => ({
       ...msg,
       messageUUID: msg.messageUUID && uuidValidate(msg.messageUUID) ? msg.messageUUID : uuidv4(),
@@ -532,84 +499,6 @@ class MessageService {
   async getLeadConversations(leadNumber:any,phone_number_id:any,userId:string){
     return MessageModel.getLeadConversations(leadNumber,phone_number_id,userId)
   }
-
-
-//   async getUserDetails(userId:string,query:any){
-//     const userId = 'YOUR_USER_ID';
-
-// const query = knex('users as u')
-//   .where('u.id', userId)
-
-//   .leftJoin(
-//     knex('campaigns')
-//       .select('user_id')
-//       .count('* as total_campaigns')
-//       .groupBy('user_id')
-//       .as('cc'),
-//     'cc.user_id',
-//     'u.id'
-//   )
-
-//   .leftJoin(
-//     knex('contacts')
-//       .select('user_id')
-//       .count('* as active_contacts')
-//       .groupBy('user_id')
-//       .as('ct'),
-//     'ct.user_id',
-//     'u.id'
-//   )
-
-//   .leftJoin(
-//     knex('contact_lists')
-//       .select('user_id')
-//       .count('* as total_leads')
-//       .groupBy('user_id')
-//       .as('lc'),
-//     'lc.user_id',
-//     'u.id'
-//   )
-
-//   .leftJoin(
-//     knex('messages')
-//       .select('user_id')
-//       .sum({
-//         messages_sent: knex.raw("CASE WHEN direction = 'sent' THEN 1 ELSE 0 END"),
-//       })
-//       .sum({
-//         messages_received: knex.raw("CASE WHEN direction = 'received' THEN 1 ELSE 0 END"),
-//       })
-//       .groupBy('user_id')
-//       .as('mc'),
-//     'mc.user_id',
-//     'u.id'
-//   )
-
-//   .leftJoin('campaigns as c', 'c.user_id', 'u.id')
-//   .leftJoin('subscription_plans as p', 'p.id', 'u.plan_id')
-
-//   .select(
-//     'u.id',
-//     'u.name',
-//     knex.raw('COALESCE(lc.total_leads, 0) as total_leads'),
-//     knex.raw('COALESCE(mc.messages_sent, 0) as messages_sent'),
-//     knex.raw('COALESCE(mc.messages_received, 0) as messages_received'),
-//     knex.raw('COALESCE(cc.total_campaigns, 0) as total_campaigns'),
-//     knex.raw('COALESCE(ct.active_contacts, 0) as active_contacts'),
-//     knex.raw(`COALESCE(json_agg(DISTINCT c.*) FILTER (WHERE c.id IS NOT NULL), '[]') as campaigns`),
-//     'p.*'
-//   )
-
-//   .groupBy(
-//     'u.id',
-//     'p.id',
-//     'cc.total_campaigns',
-//     'ct.active_contacts',
-//     'lc.total_leads',
-//     'mc.messages_sent',
-//     'mc.messages_received'
-//   );
-//   }
 }
 
 export default new MessageService();

@@ -14,7 +14,15 @@ class chatSessionModel extends BaseModel{
     }
 
     async findByPhoneandBot(phoneNumber:string,botId:any){
-        return this.query().where({phone_number:phoneNumber,chatbot_id:botId}).first()
+        return this.query().where({phone_number:phoneNumber,chatbot_id:botId,active:true}).first()
+    }
+
+    async findByPhoneNumber(phone_number:any){
+        return this.query().where({phone_number:phone_number,active:true}).first()
+    }
+
+    async deactivateSessions(existing_session:any){
+        return this.query().update(existing_session.id,{active:false})
     }
 }
 

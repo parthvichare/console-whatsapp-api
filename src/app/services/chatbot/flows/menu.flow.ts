@@ -38,7 +38,7 @@ export const menuFlow = async ({
   // ========================================
   if(incomingId){
     // Find ANY edges globally
-    let updatedVariables;
+    let updatedVariables = session.variables;
     let variable;
     let variableValue = incomingText;
 
@@ -56,15 +56,19 @@ export const menuFlow = async ({
         (n:any)=> n.id === globalEdge.target
       )
 
-      if (nodeKey === "@whatsapp/send-list-message" || 
-                      "@whatsapp/send-button-message") {
+      if ([
+        "@whatsapp/send-list-message",
+        "@whatsapp/send-button-message"
+      ].includes(nodeKey)) {
         variable = currentNode.data?.attributes?.variable;
 
         console.log("Variable Identify", variable)
 
         // save answer in session
         const existingVariables =
-          session?.variables || {};
+          session?.variables || {}
+
+        console.log("Existsing Vairable",existingVariables)
 
         // if(message?.type === 'interactve'){
         //   variableValue = message?.interactive?.list_reply?.title 
@@ -79,14 +83,21 @@ export const menuFlow = async ({
         }
       }
 
-      if(!nextNode) return null;
+      // if(!nextNode) return null;
+      if(!nextNode){
+        chatSessionModel.update(session.id,{active:false})
+      }
 
       //VARIABLES
 
       //RESET VARIABLES
-      if(globalEdge.data && !variable){
-        updatedVariables = {}
+      if (globalEdge.data && !variable) {
+        updatedVariables = {
+          phone_number: message?.from,
+        }
       }
+
+      console.log("Updated Variable",updatedVariables)
 
       //Update session
       await chatSessionModel.update(session.id,{

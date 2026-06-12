@@ -46,6 +46,44 @@ class MessageController {
   });
 
   /**
+   * POST /v1/messages/send
+   * Send a message
+   */
+  sendPublicMessage = tryCatchAsync(async (req: AuthRequest, res: Response) => {
+    const { user_id,company_id, phone_number_id, to, type,profile_name, text, template, image, video, document, audio, interactive, location, contacts, sticker, reaction, context, campaign_id } = req.body;
+
+    if (!phone_number_id || !to || !type) {
+      throw new HTTP400Error({ message: 'Phone number ID, recipient, and message type are required' });
+    }
+
+    const message = await MessageService.sendMessage({
+      messageUUID: uuidv4(),
+      user_id: user_id,
+      company_id: company_id,
+      campaign_id: campaign_id || undefined,
+      phone_number_id,
+      profile_name,
+      to,
+      type,
+      text,
+      template,
+      image,
+      video,
+      document,
+      audio,
+      interactive,
+      location,
+      contacts,
+      sticker,
+      reaction,
+      context,
+    });
+
+    return successResponse(req, res, 'Message sent successfully', message, HttpStatusCode.CREATED);
+  });
+
+
+  /**
    * POST /v1/messages/mark-read
    * Mark message as read
    */

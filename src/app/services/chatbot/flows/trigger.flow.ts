@@ -43,6 +43,10 @@ export const triggerFlow = async ({
     // Create session WITHOUT current node
     await chatSessionModel.create({
         phone_number: phone,
+        variables:{
+            phone_number:phone 
+        },
+        active:true,
         chatbot_id: bot.id,
         current_node_id: nextNode.id,
         current_flow: bot.flow_type,

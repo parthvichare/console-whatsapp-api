@@ -224,7 +224,10 @@ class AuthController {
   }
 
   async storedChatSession(req:Request,res:Response){
-    successResponse(req,res,"Chat session stored successfully")
+    const{session_data} = req.body
+    console.log("Session Data",session_data)
+    const result = await AuthService.storedChatSession(session_data.phone_number,session_data)
+    return res.status(200).json(result)
   }
 }
 

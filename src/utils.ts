@@ -168,6 +168,81 @@ export function safeJSON(data: any) {
 }
 
 
+// export function replaceVariables(obj:any, variables:Record<string, any>):any{
+//   console.log("Variables", obj,variables)
+//   console.log("Typeof",typeof obj)
+
+//   if(typeof obj === "string"){
+//     return obj.replace(/\{\{(.*?)\}\}/g,(_,key)=> {
+//       console.log("key",variables[key.trim()])
+//       return variables[key.trim()]?? "";
+//     })
+//   }
+
+//   if(Array.isArray(obj)){
+//     return obj.map(item => replaceVariables(item,variables))
+//   }
+
+//   if(obj && typeof obj === "object"){
+//     const result:any = {}
+
+//     for(const key in obj){
+//       result[key] = replaceVariables(obj[key], variables)
+//     }
+
+//     return result;
+//   }
+
+//   return obj;
+// }
+
+
+export function replaceVariables(
+  obj: any,
+  variables: Record<string, any>
+): any {
+  console.log("Variables", obj,variables)
+  console.log("Typeof",typeof obj)
+
+  if (typeof obj === "string") {
+     console.log("STRING VALUE:", obj);
+
+    // Entire object injection
+    if (obj.trim() === "{{data}}" || "{{variable}}") {
+      console.log("MATCHED DATA");
+      return variables;
+    }
+
+    return obj.replace(/\{\{(.*?)\}\}/g, (_, key) => {
+      const value = key
+        .trim()
+        .split(".")
+        .reduce(
+          (o: any, k: string) => o?.[k],
+          variables
+        );
+
+      return value ?? "";
+    });
+  }
+
+  if (Array.isArray(obj)) {
+    return obj.map(item => replaceVariables(item, variables));
+  }
+
+  if (obj && typeof obj === "object") {
+    const result: any = {};
+
+    for (const key in obj) {
+      result[key] = replaceVariables(obj[key], variables);
+    }
+
+    return result;
+  }
+
+  return obj;
+}
+
 
 export const downloadImage = async (mediaId: string) => {
     console.log("MediaId:", mediaId);
@@ -227,102 +302,6 @@ export const transformFeatures = (features: any) => {
 };
 
 
-// async function handleUserFlow(bot: any, session: any, text: string, phone: string) {
-//   const normalized = text.toLowerCase().trim();
-
-//   // 1️⃣ Check trigger again (restart flow)
-//   const triggerNode = bot.nodes.find((n: any) => n.type === "trigger");
-  
-
-//   if (triggerNode) {
-//     const isMatch = matchTrigger(triggerNode.data, normalized);
-
-//     if (isMatch) {
-//       console.log("🔄 Restarting flow");
-//       return await startNewFlow(bot, phone, normalized);
-//     }
-//   }
-
-//   // 2️⃣ Get current node
-//   const currentNode = bot.nodes.find(
-//     (n: any) => n.id === session.last_node_id
-//   );
-
-//   if (!currentNode) return null;
-
-//   console.log("📍 Current Node:", currentNode.type);
-
-//   // 3️⃣ If interactive → handle button
-//   if (currentNode.type === "interactive") {
-//     return await handleInteractive(bot, session, normalized);
-//   }
-
-//   // 4️⃣ Otherwise → go next
-//   return await goToNextNode(bot, session, normalized);
-// }
-
-
-// async function handleInteractive(bot: any, session: any, text: string) {
-//   const currentNode = bot.nodes.find(
-//     (n: any) => n.id === session.last_node_id
-//   );
-
-//   if (!currentNode) return null;
-
-//   const edges = bot.edges.filter(
-//     (e: any) => e.source === currentNode.id
-//   );
-
-//   console.log("👉 Matching button:", text);
-
-//   // 🔥 MATCH USING LABEL (NOT btn_id)
-//   const matchedEdge = edges.find((e: any) => {
-//     const label = (e.label || "").toLowerCase().trim();
-//     return label === text;
-//   });
-
-//   if (!matchedEdge) {
-//     console.log("❌ No match");
-//     return null;
-//   }
-
-//   const nextNode = bot.nodes.find(
-//     (n: any) => n.id === matchedEdge.target
-//   );
-
-//   if (!nextNode) return null;
-
-//   await chatSessionModel.update(session.id, {
-//     last_node_id: nextNode.id,
-//     last_message: text,
-//   });
-
-//   return buildResponse(nextNode);
-// }
-
-// async function goToNextNode(bot: any, session: any, text: string) {
-//   const currentNode = bot.nodes.find(
-//     (n: any) => n.id === session.last_node_id
-//   );
-
-//   if (!currentNode) return null;
-
-//   const edge = bot.edges.find((e: any) => e.source === currentNode.id);
-//   if (!edge) return null;
-
-//   const nextNode = bot.nodes.find(
-//     (n: any) => n.id === edge.target
-//   );
-
-//   if (!nextNode) return null;
-
-//   await chatSessionModel.update(session.id, {
-//     last_node_id: nextNode.id,
-//     last_message: text,
-//   });
-
-//   return buildResponse(nextNode);
-// }
 
 async function startNewFlow(bot: any, phone: string, text: string) {
   const triggerNode = bot.nodes.find((n: any) => n.type === "trigger");
@@ -407,7 +386,26 @@ export const normalizePhoneNumber = (
   };
 };
 
-export async function buildResponse(node: any) {
+export function replaceBodyVariables(
+  text: string,
+  variables: Record<string, any> = {}
+): string {
+  if (!text) return "";
+
+  return text.replace(/\{\{(.*?)\}\}/g, (_, variable) => {
+    const value = variable
+      .trim()
+      .split(".")
+      .reduce(
+        (obj: any, key: string) => obj?.[key],
+        variables
+      );
+
+    return value ?? "";
+  });
+}
+
+export async function buildResponse(node: any,session?:any) {
   console.log('NextNode', JSON.stringify(node))
   const data = safeJSON(node.data);
 
@@ -429,10 +427,18 @@ export async function buildResponse(node: any) {
   }
 
   if (key === "@whatsapp/send-text-message") {
+    let text =
+      data?.attributes?.message?.text?.body || "";
+
+    text = replaceBodyVariables(
+      text,
+      session?.variables || {}
+    );
+
     return {
       type: "text",
-      text: data?.attributes?.message?.text?.body || ""
-    }
+      text,
+    };
   }
 
   // Button Interactive  

@@ -7,6 +7,8 @@ import jwt from 'jsonwebtoken';
 import sendEmail from '../../utils';
 import passwordResetModel from '../models/passwordReset.model';
 import crypto from 'crypto';
+import storesSessionModel from '../models/storesSession.model';
+import chatSessionModel from '../models/chatSession.model';
 
 interface LoginCredentials {
   identifier: string; // email or phone
@@ -363,6 +365,37 @@ class AuthService {
     await passwordResetModel.deleteByUserId(userId);
 
     return { message: 'Password reset successful' };
+  }
+
+  async storedChatSession(phone_number: any, data: any) {
+    try {
+
+      const existingSessions: any = await chatSessionModel.findByPhoneNumber(phone_number)
+      console.log("EXISTISNG sessiosn", existingSessions)
+      if (existingSessions) {
+        const deactivateSessions = await chatSessionModel.update(existingSessions.id, { active: false })
+        console.log("Deactivate", deactivateSessions)
+        const existingPhoneNumber = await storesSessionModel.findByPhoneNumber(phone_number)
+
+        if (existingPhoneNumber) {
+          return {
+            success: false,
+            data: existingPhoneNumber.data
+          }
+        }
+        const storedSession = await storesSessionModel.create({ phone_number: phone_number, data: data })
+
+        console.log("existing", existingPhoneNumber)
+        console.log("storedsession", storedSession)
+
+        return {
+          success: true,
+          data: storedSession
+        }
+      }
+    } catch (error) {
+      throw error
+    }
   }
 }
 
