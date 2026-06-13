@@ -36,11 +36,11 @@ export const uploadImage = async (
 
     await firebaseFile.makePublic();
 
-    const imageUrl = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
+    const mediaUrl = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
 
-    console.log('✅ Image uploaded:', imageUrl);
+    console.log('✅ Image uploaded:', mediaUrl);
 
-    return imageUrl;
+    return mediaUrl;
   } catch (error) {
     console.error('❌ Firebase upload error:', error);
     throw error;

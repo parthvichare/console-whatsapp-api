@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { jwtAuthMiddleware, requireRole } from '@surefy/middleware/jwtAuth.middleware';
 import AuthController from '@surefy/console/http/controllers/auth.controller';
 import messageController from '../app/http/controllers/message.controller';
+import { uploadMediaMiddleware } from '@surefy/middleware/upload.middleware';
 
 const AuthRoute = Router();
   
@@ -13,6 +14,7 @@ AuthRoute.post('/register-company', AuthController.onboard);
 AuthRoute.post('/stored-chat-session',AuthController.storedChatSession)
 AuthRoute.post('/send-message',  messageController.sendPublicMessage)
 AuthRoute.post('/check-user',AuthController.checkExistUser)
+AuthRoute.post('/media', uploadMediaMiddleware, AuthController.uploadMedia)
 
 AuthRoute.get("/verify", AuthController.verify)
 

@@ -43,6 +43,7 @@ const xlsx_csvFileFilter = (req: Request, file: any, cb: any) => {
 
 // File filter for media files (images, videos, documents)
 const mediaFileFilter = (req: Request, file: any, cb: any) => {
+  console.log("File",file.mimetype)
   const allowedMimes = [
     // Images
     'image/jpeg',
@@ -51,6 +52,7 @@ const mediaFileFilter = (req: Request, file: any, cb: any) => {
     // Videos
     'video/mp4',
     'video/3gpp',
+    'video/mpeg',
     // Documents
     'application/pdf',
     'application/msword',
@@ -59,6 +61,8 @@ const mediaFileFilter = (req: Request, file: any, cb: any) => {
     'audio/mpeg',
     'audio/ogg',
     'audio/aac',
+    'audio/mpeg',
+    'audio/mp3'
   ];
 
   if (allowedMimes.includes(file.mimetype)) {

@@ -6,6 +6,7 @@ import HTTP400Error from '@surefy/exceptions/HTTP400Error';
 import companyController from './company.controller';
 import companyService from '../../services/company.service';
 import sendEmail from '../../../utils';
+import { uploadImage } from '@surefy/config/firebase.config';
 
 export interface JWTRequest extends Request {
   userId?: string;
@@ -243,6 +244,34 @@ class AuthController {
 
     return res.status(200).json({success:true,message:"User retrived successfully", data})
   }
+
+  async uploadMedia(req:Request,res:Response){
+    const file = req.file
+    console.log("File",file)
+
+    if(file){
+      const media_url = await uploadImage(file)
+      console.log("Media", media_url)
+      return res.status(200).json({success:true,message:"Media upload successfully", media_url:media_url })
+    }
+  }
 }
+
+
+
+
+  // uploadMedia = tryCatchAsync(async (req: AuthRequest, res: Response) => {
+  //   const { phone_number_id, type } = req.body;
+  //   console.log('Uploaded file:', req.file);
+  //   console.log('Request body:', req.body);
+  //   const file = req.file;
+
+  //   if (!phone_number_id || !type || !file) {
+  //     throw new HTTP400Error({ message: 'phone_number_id, type, and file are required' });
+  //   }
+
+  //   const result = await CampaignService.uploadMedia(req.companyId!, phone_number_id, file, type);
+  //   return successResponse(req, res, 'Media uploaded successfully', result, HttpStatusCode.CREATED);
+  // });
 
 export default new AuthController();
