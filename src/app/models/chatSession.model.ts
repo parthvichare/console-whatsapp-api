@@ -10,7 +10,7 @@ class chatSessionModel extends BaseModel{
     }
 
     async findById(id: string | number): Promise<any> {
-        return this.query().where({id}).first()
+       return this.query().where({id}).first()
     }
 
     async findByPhoneandBot(phoneNumber:string,botId:any){

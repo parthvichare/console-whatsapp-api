@@ -7,6 +7,7 @@ import nodemailer from "nodemailer";
 import axios from 'axios';
 import { parsePhoneNumberFromString } from "libphonenumber-js";
 import metaService from './app/services/meta.service';
+import { executeNode } from './app/services/chatbot/engine/executeNode';
 
 export const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
@@ -18,72 +19,72 @@ export const transporter = nodemailer.createTransport({
   },
 });
 
-export async function handleIncomingMessageChatBot(phoneNumberId: any, message: any) {
-  try {
-    console.log("📥 Incoming:", phoneNumberId, message);
+// export async function handleIncomingMessageChatBot(phoneNumberId: any, message: any) {
+//   try {
+//     console.log("📥 Incoming:", phoneNumberId, message);
 
-    const phone = message.from;
+//     const phone = message.from;
 
-    const incomingId =
-      message?.interactive?.button_reply?.id ||
-      message?.interactive?.list_reply?.id ||
-      null;
+//     const incomingId =
+//       message?.interactive?.button_reply?.id ||
+//       message?.interactive?.list_reply?.id ||
+//       null;
 
-    const incomingText = (
-      message?.text?.body ||
-      message?.interactive?.button_reply?.title ||
-      message?.interactive?.list_reply?.title ||
-      ""
-    ).toLowerCase().trim();
+//     const incomingText = (
+//       message?.text?.body ||
+//       message?.interactive?.button_reply?.title ||
+//       message?.interactive?.list_reply?.title ||
+//       ""
+//     ).toLowerCase().trim();
 
-    console.log("📩 Parsed:", { phone, incomingText });
+//     console.log("📩 Parsed:", { phone, incomingText });
 
-    // 1️⃣ Get bot
-    console.log("🔍 Finding bot for phone number:", phoneNumberId);
-    const bot: any = await chatBotModel.getPublishedBotByPhoneNumberId(phoneNumberId);
-    console.log("🤖 Found bot:", bot ? bot.name : "No bot");
-    console.log("🤖 Found bot:", bot ? bot.name : "No bot");
-    if (!bot) return null;
+//     // 1️⃣ Get bot
+//     console.log("🔍 Finding bot for phone number:", phoneNumberId);
+//     const bot: any = await chatBotModel.getPublishedBotByPhoneNumberId(phoneNumberId);
+//     console.log("🤖 Found bot:", bot ? bot.name : "No bot");
+//     console.log("🤖 Found bot:", bot ? bot.name : "No bot");
+//     if (!bot) return null;
 
-    // 2️⃣ Load nodes + edges
-    const rawNodes = await chatBotNodeModel.findByChatBotId(bot.id) || [];
-    const rawEdges = await chatBotEdgeModel.findByChatBotId(bot.id) || [];
+//     // 2️⃣ Load nodes + edges
+//     const rawNodes = await chatBotNodeModel.findByChatBotId(bot.id) || [];
+//     const rawEdges = await chatBotEdgeModel.findByChatBotId(bot.id) || [];
 
-    bot.nodes = rawNodes.map((n: any) => ({
-      ...n,
-      data: safeJSON(n.data),
-    }));
+//     bot.nodes = rawNodes.map((n: any) => ({
+//       ...n,
+//       data: safeJSON(n.data),
+//     }));
 
-    bot.edges = rawEdges.map((e: any) => ({
-      ...e,
-      data: safeJSON(e.data),
-    }));
+//     bot.edges = rawEdges.map((e: any) => ({
+//       ...e,
+//       data: safeJSON(e.data),
+//     }));
 
-    console.log("📦 Nodes:", bot.nodes.length);
-    console.log("🔗 Edges:", bot.edges.length);
+//     console.log("📦 Nodes:", bot.nodes.length);
+//     console.log("🔗 Edges:", bot.edges.length);
 
-    // console.log("Nodes", JSON.stringify(bot.nodes))
-    // console.log("Edges", JSON.stringify(bot.edges))
+//     // console.log("Nodes", JSON.stringify(bot.nodes))
+//     // console.log("Edges", JSON.stringify(bot.edges))
 
 
-    // 3️⃣ Resolve flow WITHOUT session
-    const response = resolveFlow(bot, incomingText,incomingId);
-    console.log("Response", JSON.stringify(response))
+//     // 3️⃣ Resolve flow WITHOUT session
+//     const response = resolveFlow(bot, incomingText,incomingId);
+//     console.log("Response", JSON.stringify(response))
 
-    // 4️⃣ Send message
-    if (response) {
-      await messageService.sendChatBotMessage(phoneNumberId, phone, response);
-    } else {
-      console.log("⚠️ No response generated");
-    }
+//     // 4️⃣ Send message
+//     if (response) {
+//       await messageService.sendChatBotMessage(phoneNumberId, phone, response);
+//     } else {
+//       console.log("⚠️ No response generated");
+//     }
 
-    return response;
+//     return response;
 
-  } catch (error) {
-    console.error("❌ Chatbot Error:", error);
-    return null;
-  }
-}
+//   } catch (error) {
+//     console.error("❌ Chatbot Error:", error);
+//     return null;
+//   }
+// }
 
 
 function resolveFlow(bot: any, incomingText: string, incomingId?: string) {
@@ -405,7 +406,7 @@ export function replaceBodyVariables(
   });
 }
 
-export async function buildResponse(node: any,session?:any) {
+export async function buildResponse(node: any, bot?:any,session?:any) {
   console.log('NextNode', JSON.stringify(node))
   const data = safeJSON(node.data);
 
@@ -449,6 +450,13 @@ export async function buildResponse(node: any,session?:any) {
       interactive: {
         type: "button",
 
+        header:{
+          type: "text",
+          text: data?.attributes
+           ? data?.attributes?.message?.interactive?.header?.text || "" 
+           : ""
+        },
+
         body: {
           text: data?.attributes
             ? data?.attributes?.message?.interactive?.body?.text
@@ -484,7 +492,6 @@ export async function buildResponse(node: any,session?:any) {
   }
 
   if (key === "@whatsapp/ask-location") {
-
     return {
       type: "interactive",
 
@@ -611,9 +618,6 @@ export async function buildResponse(node: any,session?:any) {
   //   };
   // }
 
-  // Interactive Handling
-  if (node.type === "buttons") {
-  }
 
   return null;
 }

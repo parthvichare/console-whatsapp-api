@@ -60,6 +60,7 @@ export const menuFlow = async ({
         "@whatsapp/send-list-message",
         "@whatsapp/send-button-message"
       ].includes(nodeKey)) {
+        console.log("Current Node",currentNode)
         variable = currentNode.data?.attributes?.variable;
 
         console.log("Variable Identify", variable)
@@ -93,6 +94,7 @@ export const menuFlow = async ({
       //RESET VARIABLES
       if (globalEdge.data && !variable) {
         updatedVariables = {
+          ...(session.variables || {}),
           phone_number: message?.from,
         }
       }
@@ -166,6 +168,8 @@ export const menuFlow = async ({
     // save answer in session
     const existingVariables =
       session?.variables || {};
+
+    console.log("Existing Variable", existingVariables)
 
     let answer: any = incomingText;
 

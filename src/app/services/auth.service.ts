@@ -9,6 +9,7 @@ import passwordResetModel from '../models/passwordReset.model';
 import crypto from 'crypto';
 import storesSessionModel from '../models/storesSession.model';
 import chatSessionModel from '../models/chatSession.model';
+import userModel from '../models/user.model';
 
 interface LoginCredentials {
   identifier: string; // email or phone
@@ -156,8 +157,9 @@ class AuthService {
     company_id?: string;
     password: string;
     role: string;
+    user_role?:any
   }) {
-    const { name, email, phone, company_id, password } = data;
+    const { name, email, phone, company_id, password,user_role } = data;
 
     console.log('Registering user with data:', data);
 
@@ -193,6 +195,7 @@ class AuthService {
       company_id,
       password: hashedPassword,
       role: data.role,
+      user_role,
       status: 'active'
     });
 
@@ -396,6 +399,13 @@ class AuthService {
     } catch (error) {
       throw error
     }
+  }
+
+  async checkExistUser(phone_number:any){
+    console.log("Phone number",phone_number)
+    const existUser =  await userModel.findByPhone(phone_number)
+    console.log("Existisng user",existUser)
+    return existUser
   }
 }
 

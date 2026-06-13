@@ -225,9 +225,23 @@ class AuthController {
 
   async storedChatSession(req:Request,res:Response){
     const{session_data} = req.body
+    if(!session_data){
+      return res.status(200).json({success:false, message:"Sessions required"})
+    }
     console.log("Session Data",session_data)
     const result = await AuthService.storedChatSession(session_data.phone_number,session_data)
     return res.status(200).json(result)
+  }
+
+  async checkExistUser(req:Request,res:Response){
+    const{session_data} = req.body
+    console.log("Session data",session_data)
+    const data = await AuthService.checkExistUser(session_data.phone_number)
+    if(!data){
+      return res.status(200).json({success:false,message:"User not found", data})
+    }
+
+    return res.status(200).json({success:true,message:"User retrived successfully", data})
   }
 }
 

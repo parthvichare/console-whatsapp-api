@@ -86,8 +86,9 @@ class UserModel extends BaseModel {
       }));
   }
 
-  async findByPhone(phone: string) {
-    return this.query().where({ phone }).whereNull('deleted_at').first();
+  async findByPhone(phone_number: any) {
+    console.log("Phone", phone_number)
+    return this.query().where({ phone:phone_number }).first();
   }
 
   async findByEmailOrPhone(identifier: string) {

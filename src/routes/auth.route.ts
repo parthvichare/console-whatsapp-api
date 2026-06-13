@@ -12,7 +12,7 @@ AuthRoute.post('/register-company', AuthController.onboard);
 
 AuthRoute.post('/stored-chat-session',AuthController.storedChatSession)
 AuthRoute.post('/send-message',  messageController.sendPublicMessage)
-
+AuthRoute.post('/check-user',AuthController.checkExistUser)
 
 AuthRoute.get("/verify", AuthController.verify)
 

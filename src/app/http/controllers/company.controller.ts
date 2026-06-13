@@ -114,14 +114,14 @@ class CompanyController {
    * Create user under company
    */
   createUser = tryCatchAsync(async(req: AuthRequest,res:Response)=>{
-    const { name, email, phone, password, role,assigned_plan} = req.body;
+    const { name, email, phone, password, role,assigned_plan,user_role} = req.body;
     // console.log("Creating user with data:",{name,email,phone,role})
 
-    if (!name || !email || !password) {
+    if (!name || !email || !password || !user_role) {
       throw new HTTP400Error({ message: 'Name, email, and password are required' });
     }
 
-    const createdUser = await CompanyService.createUser(req.companyId!,{name,email,phone,password,role,assigned_plan})
+    const createdUser = await CompanyService.createUser(req.companyId!,{name,email,phone,password,role,assigned_plan,user_role})
     return successResponse(req, res, 'User created successfully', createdUser);
   })
 

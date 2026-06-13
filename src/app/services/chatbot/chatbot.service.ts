@@ -79,7 +79,7 @@ export async function handleIncomingMessageChatBot(phoneNumberId: any, message: 
     if (response) {
       await messageService.sendChatBotMessage(phoneNumberId, phone, response);
     } else {
-      console.log("⚠️ No response generated");
+      console.log("⚠️ No response generated to send");
     }
 
     return response;

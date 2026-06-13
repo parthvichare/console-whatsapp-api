@@ -497,7 +497,7 @@ class CompanyService {
    */
   async createUser(
     companyId: string,
-    userData: { name: string; email?: string; phone?: string; password: string; role: string; assigned_plan?: string },
+    userData: { name: string; email?: string; phone?: string; password: string; role: string; user_role?:string, assigned_plan?: string },
   ) {
     const existingUser = await userModel.findByEmail(userData.email);
 
@@ -520,6 +520,7 @@ class CompanyService {
         phone: userData.phone,
         password: userData.password,
         role: userData.role,
+        user_role:userData.user_role
       });
     }
 
