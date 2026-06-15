@@ -189,7 +189,7 @@ class MessageController {
               context: message?.context?.id,
             });
 
-            await handleIncomingMessageChatBot(value.metadata.phone_number_id,message)
+            await handleIncomingMessageChatBot(value.metadata.phone_number_id,message,value.contacts?.[0]?.profile?.name)
           }
         }
       }

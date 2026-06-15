@@ -5,6 +5,7 @@ import chatBotEdgeModel from '@surefy/console/models/chatBotEdge.model';
 import messageService from "@surefy/console/services/message.service"
 import nodemailer from "nodemailer";
 import { flowRouter } from './flow.router';
+import contactModel from '@surefy/console/models/contact.model';
 
 export const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
@@ -16,11 +17,13 @@ export const transporter = nodemailer.createTransport({
   },
 });
 
-export async function handleIncomingMessageChatBot(phoneNumberId: any, message: any) {
+export async function handleIncomingMessageChatBot(phoneNumberId: any, message: any, profile_name:any) {
   try {
+
     console.log("📥 Incoming:", phoneNumberId, message);
 
     const phone = message.from;
+
 
     const incomingId =
       message?.interactive?.button_reply?.id ||
@@ -42,6 +45,18 @@ export async function handleIncomingMessageChatBot(phoneNumberId: any, message: 
     const bot: any = await chatBotModel.getPublishedBotByPhoneNumberId(phoneNumberId);
     console.log("🤖 Found bot:", bot ? bot.name : "No bot");
     if (!bot) return null;
+
+    //check exist contact
+    const existContact = await contactModel.findByPhone(bot.user_id,message.from)
+    if(!existContact){
+      const newContact = await contactModel.create({
+        user_id: bot.user_id,
+        company_id:bot.company_id,
+        phone_number:message.from,
+        name:profile_name
+      })
+      console.log("New Contact", newContact)
+    }
 
     // 2️⃣ Load nodes + edges
     const rawNodes = await chatBotNodeModel.findByChatBotId(bot.id) || [];

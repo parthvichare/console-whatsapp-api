@@ -30,7 +30,7 @@ class ContactController {
       tag_ids,
     });
 
-    await userPlansModel.incrementUsage(req.userId!, 'Contact');
+    // await userPlansModel.incrementUsage(req.userId!, 'Contact');
 
     return successResponse(req, res, 'Contact created successfully', contact, HttpStatusCode.CREATED);
   });
@@ -69,7 +69,7 @@ class ContactController {
    */
   updateContact = tryCatchAsync(async (req: Request, res: Response) => {
     const { id } = req.params;
-    const { name, email, attributes, notes, tag_ids } = req.body;
+    const { name, email, attributes, notes, tag_ids,assigned_to } = req.body;
 
     const contact = await ContactService.updateContact(id, {
       name,
@@ -77,6 +77,7 @@ class ContactController {
       attributes,
       notes,
       tag_ids,
+      assigned_to
     });
 
     return successResponse(req, res, 'Contact updated successfully', contact);

@@ -1,6 +1,7 @@
 export interface chatBot{
     id?:string;
     user_id:string;
+    company_id:string;
     description:string;
     name:string;
     published:boolean;

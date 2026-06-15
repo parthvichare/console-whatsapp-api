@@ -25,7 +25,7 @@ class chatBotController {
             throw new HTTP400Error({ message: 'Associated WABA account not found for user' });
         }
 
-        const result = await chatBotService.createChatBot({user_id:req.userId!,name,description, status:'draft',published:false,phoneNumberId:phoneNumber.phone_number_id})
+        const result = await chatBotService.createChatBot({user_id:req.userId!,company_id:req.companyId!,name,description, status:'draft',published:false,phoneNumberId:phoneNumber.phone_number_id})
         // await userPlansModel.incrementUsage(req.userId!, 'Chatbot');
         return successResponse(req, res, 'Create ChatBot successfully', result);
     })
