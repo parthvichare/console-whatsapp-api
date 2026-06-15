@@ -225,68 +225,80 @@ class CompanyService {
   //   return updatedUser;
   // }
 
-  async updateCompanyUser(userId: string, data: any) {
-    const { assigned_plan } = data;
+  // async updateCompanyUser(userId: string, data: any) {
+  //   const { assigned_plan } = data;
 
+  //   const user = await userModel.findById(userId);
+  //   if (!user) {
+  //     throw new HTTP404Error({ message: 'User not found' });
+  //   }
+
+  //   if (!assigned_plan) {
+  //     return await userModel.update(userId, data);
+  //   }
+
+  //   // 1. Get existing plan
+  //   const existingPlan = await userPlansModel.findPlanByUserId(userId);
+
+  //   // 2. Prevent same plan reassignment
+  //   if (existingPlan && existingPlan.subscription_id === assigned_plan) {
+  //     throw new HTTP400Error({
+  //       message: 'User is already assigned to this subscription plan',
+  //     });
+  //   }
+
+  //   // 3. Get new plan details
+  //   const subscriptionPlanDetails = await subscriptionModel.findPlans(assigned_plan, true);
+
+  //   if (!subscriptionPlanDetails) {
+  //     throw new HTTP400Error({
+  //       message: 'Assigned subscription plan not found or not active',
+  //     });
+  //   }
+
+  //   let userPlan = null;
+
+  //   // =========================
+  //   // 🎯 CASE HANDLING
+  //   // =========================
+
+  //   // ✅ Case 1: No existing plan
+  //   if (!existingPlan) {
+  //     userPlan = await this.activateUserPlan(userId, subscriptionPlanDetails, null, user.company_id);
+  //   }
+
+  //   // ✅ Case 2: Existing FREE plan → replace directly
+  //   else if (existingPlan.billing_cycle === 'Free') {
+  //     userPlan = await this.activateUserPlan(userId, subscriptionPlanDetails, existingPlan, user.company_id);
+  //   }
+
+  //   // ✅ Case 3: Existing PAID plan → settle (carry forward)
+  //   else {
+  //     userPlan = await this.settleUserPlan(existingPlan.id, subscriptionPlanDetails, existingPlan, user.company_id);
+  //   }
+
+  //   // =========================
+
+  //   console.log('UserPlan', userPlan);
+
+  //   if (userPlan) {
+  //     data.assigned_plan = userPlan.id;
+  //   }
+
+  //   return await userModel.update(userId, data);
+  // }
+
+
+  async updateCompanyUser(userId: string, data: any) {
     const user = await userModel.findById(userId);
     if (!user) {
       throw new HTTP404Error({ message: 'User not found' });
     }
 
-    if (!assigned_plan) {
-      return await userModel.update(userId, data);
-    }
-
-    // 1. Get existing plan
-    const existingPlan = await userPlansModel.findPlanByUserId(userId);
-
-    // 2. Prevent same plan reassignment
-    if (existingPlan && existingPlan.subscription_id === assigned_plan) {
-      throw new HTTP400Error({
-        message: 'User is already assigned to this subscription plan',
-      });
-    }
-
-    // 3. Get new plan details
-    const subscriptionPlanDetails = await subscriptionModel.findPlans(assigned_plan, true);
-
-    if (!subscriptionPlanDetails) {
-      throw new HTTP400Error({
-        message: 'Assigned subscription plan not found or not active',
-      });
-    }
-
-    let userPlan = null;
-
-    // =========================
-    // 🎯 CASE HANDLING
-    // =========================
-
-    // ✅ Case 1: No existing plan
-    if (!existingPlan) {
-      userPlan = await this.activateUserPlan(userId, subscriptionPlanDetails, null, user.company_id);
-    }
-
-    // ✅ Case 2: Existing FREE plan → replace directly
-    else if (existingPlan.billing_cycle === 'Free') {
-      userPlan = await this.activateUserPlan(userId, subscriptionPlanDetails, existingPlan, user.company_id);
-    }
-
-    // ✅ Case 3: Existing PAID plan → settle (carry forward)
-    else {
-      userPlan = await this.settleUserPlan(existingPlan.id, subscriptionPlanDetails, existingPlan, user.company_id);
-    }
-
-    // =========================
-
-    console.log('UserPlan', userPlan);
-
-    if (userPlan) {
-      data.assigned_plan = userPlan.id;
-    }
-
     return await userModel.update(userId, data);
   }
+
+
 
   async createUserPlan(userId: string, companyId: string, planData: any, razorPayDetails: any) {
     const { plan_name, price, billing_cycle, features } = planData;

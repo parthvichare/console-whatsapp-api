@@ -5,11 +5,13 @@ import { buildResponse, matchTrigger } from "@surefy/console/utils";
 export const triggerFlow = async ({
     bot,
     phone,
-    incomingText
+    incomingText,
+    phoneNumberId
 }: {
     bot: any,
     phone: string,
-    incomingText: string
+    incomingText: string,
+    phoneNumberId:string
 }) => {
 
     console.log("Trigger Flow", phone, incomingText);
@@ -47,6 +49,7 @@ export const triggerFlow = async ({
         variables: {
             phone_number: phone
         },
+        phoneNumberId:phoneNumberId,
         active: true,
         chatbot_id: bot.id,
         current_node_id: nextNode.id,

@@ -13,7 +13,7 @@ export const executeNode = async ({
     const data = currentNode.data
     const key = data?.key
 
-    console.log("EXECUTING NODE:",key,session)
+    console.log("EXECUTING NODE:",key,data,session)
 
     /**
      * HTTP Node

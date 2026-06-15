@@ -68,7 +68,8 @@ export async function handleIncomingMessageChatBot(phoneNumberId: any, message: 
       phone,
       incomingText,
       incomingId,
-      message
+      message,
+      phoneNumberId
     })
 
     // // 3️⃣ Resolve flow WITHOUT session

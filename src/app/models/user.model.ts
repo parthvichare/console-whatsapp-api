@@ -88,7 +88,7 @@ class UserModel extends BaseModel {
 
   async findByPhone(phone_number: any) {
     console.log("Phone", phone_number)
-    return this.query().where({ phone:phone_number }).first();
+    return this.query().where({ phone: phone_number }).first();
   }
 
   async findByEmailOrPhone(identifier: string) {
@@ -134,27 +134,24 @@ class UserModel extends BaseModel {
     });
   }
 
-  async findAllUserByCompanyId(companyId?: string, role?: string, filterRole?: string) {
+  async findAllUserByCompanyId(
+    companyId?: string,
+    role?: string,
+    filterRole?: string,
+  ) {
     const isSuperAdmin = role === 'superadmin';
 
     const query = this.query()
       .from('users as u')
-      .leftJoin(
-        // 🔥 subquery: get ONLY latest active plan per user
-        this.query().from('user_plans').select('*').where('active', true).orderBy('created_at', 'desc').as('up'),
-        function () {
-          this.on('up.id', '=', 'u.assigned_plan');
-        },
-      )
-      .select('u.*', 'up.plan_name', 'up.start_date', 'up.end_date', 'up.active as plan_active')
+      .select('u.*')
       .whereNull('u.deleted_at');
 
-    // ✅ Restrict company for non-superadmin
+    // Restrict company for non-superadmin
     if (!isSuperAdmin) {
       query.where('u.company_id', companyId);
     }
 
-    // ✅ Optional role filter
+    // Optional role filter
     if (filterRole) {
       query.where('u.role', filterRole);
     }

@@ -11,7 +11,8 @@ type FlowRouterParams={
     phone:string;
     incomingText:string;
     incomingId:string;
-    message:string
+    message:string;
+    phoneNumberId:string
 }
 
 export const flowRouter = async ({ 
@@ -19,7 +20,8 @@ export const flowRouter = async ({
     phone, 
     incomingText, 
     incomingId,
-    message
+    message,
+    phoneNumberId
 }: FlowRouterParams)=> {
     // Get Session
     console.log("Flow Body",phone,incomingText,incomingId)
@@ -43,5 +45,5 @@ export const flowRouter = async ({
     }
 
    // Default -> trigger flow
-    return await triggerFlow({bot,phone,incomingText})
+    return await triggerFlow({bot,phone,incomingText,phoneNumberId})
 }

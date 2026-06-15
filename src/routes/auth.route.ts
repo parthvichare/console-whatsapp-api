@@ -10,13 +10,12 @@ const AuthRoute = Router();
 AuthRoute.post('/login', AuthController.login);
 AuthRoute.post('/register', AuthController.register); 
 AuthRoute.post('/register-company', AuthController.onboard);
+AuthRoute.post('/stored-chat-session',AuthController.storedChatSession);
+AuthRoute.post('/send-message',  messageController.sendPublicMessage);
+AuthRoute.post('/check-user',AuthController.checkExistUser);
+AuthRoute.post('/media', uploadMediaMiddleware, AuthController.uploadMedia);
 
-AuthRoute.post('/stored-chat-session',AuthController.storedChatSession)
-AuthRoute.post('/send-message',  messageController.sendPublicMessage)
-AuthRoute.post('/check-user',AuthController.checkExistUser)
-AuthRoute.post('/media', uploadMediaMiddleware, AuthController.uploadMedia)
-
-AuthRoute.get("/verify", AuthController.verify)
+AuthRoute.get("/verify", AuthController.verify);
 
 //Reset-password
 AuthRoute.post('/verify-otp', AuthController.verifyOtp);
