@@ -19,6 +19,7 @@ companyRoute.get('/', CompanyController.getAll);
 companyRoute.post('/user',companyController.createUser);
 companyRoute.get('/user',companyController.getAllUsers);
 companyRoute.put('/user/:id', CompanyController.updateCompanyUser);
+companyRoute.delete('/user/:id',CompanyController.deleteCompanyUser)
 companyRoute.get("/subscriptions",CompanyController.getCompaniesSubscription)
 
 // companyRoute.get('/:id', CompanyController.getById);
