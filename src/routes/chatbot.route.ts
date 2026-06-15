@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import chatBotController from '../app/http/controllers/chatbot.controller';
-import { checkPlanLimit } from '@surefy/middleware/plan.middleware';
 
 const chatBotRoute = Router()
 

@@ -48,6 +48,7 @@ export async function handleIncomingMessageChatBot(phoneNumberId: any, message: 
 
     //check exist contact
     const existContact = await contactModel.findByPhone(bot.user_id,message.from)
+    console.log("Existing Contant",existContact)
     if(!existContact){
       const newContact = await contactModel.create({
         user_id: bot.user_id,
