@@ -10,6 +10,7 @@ import crypto from 'crypto';
 import storesSessionModel from '../models/storesSession.model';
 import chatSessionModel from '../models/chatSession.model';
 import userModel from '../models/user.model';
+import phoneNumberModel from '../models/phoneNumber.model';
 
 interface LoginCredentials {
   identifier: string; // email or phone
@@ -115,7 +116,7 @@ class AuthService {
     return { message: 'OTP sent to email' };
   }
 
-  async verifyOtp(otp: string,email: string, ) {
+  async verifyOtp(otp: string, email: string,) {
     console.log('Verifying OTP for email:', email);
     const record = await passwordResetModel.findLatestByEmail(email);
     console.log('OTP Record:', record);
@@ -157,9 +158,9 @@ class AuthService {
     company_id?: string;
     password: string;
     role: string;
-    user_role?:any
+    user_role?: any
   }) {
-    const { name, email, phone, company_id, password,user_role } = data;
+    const { name, email, phone, company_id, password, user_role } = data;
 
     console.log('Registering user with data:', data);
 
@@ -358,7 +359,7 @@ class AuthService {
       throw new HTTP400Error({ message: 'Invalid or expired token' });
     }
 
-    const { userId }:any = decoded;
+    const { userId }: any = decoded;
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
@@ -386,14 +387,27 @@ class AuthService {
             data: existingPhoneNumber.data
           }
         }
-        const storedSession = await storesSessionModel.create({ phone_number: phone_number, data: data })
+        const companyDetails = await phoneNumberModel.findByPhoneNumberId(existingSessions.phoneNumberId)
+        console.log("Company Details", companyDetails)
+        if (companyDetails) {
+          const storedSession = await storesSessionModel.create({
+            user_id: companyDetails?.user_id,
+            company_id: companyDetails?.company_id,
+            phone_number: phone_number,
+            data: data
+          })
 
-        console.log("existing", existingPhoneNumber)
-        console.log("storedsession", storedSession)
+          console.log("existing", existingPhoneNumber)
+          console.log("storedsession", storedSession)
+
+          return {
+            success: true,
+            data: storedSession
+          }
+        }
 
         return {
-          success: true,
-          data: storedSession
+          success: false,
         }
       }
     } catch (error) {
@@ -401,10 +415,10 @@ class AuthService {
     }
   }
 
-  async checkExistUser(phone_number:any){
-    console.log("Phone number",phone_number)
-    const existUser =  await userModel.findByPhone(phone_number)
-    console.log("Existisng user",existUser)
+  async checkExistUser(phone_number: any) {
+    console.log("Phone number", phone_number)
+    const existUser = await userModel.findByPhone(phone_number)
+    console.log("Existisng user", existUser)
     return existUser
   }
 }
