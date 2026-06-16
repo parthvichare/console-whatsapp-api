@@ -6,7 +6,11 @@ class storedSessionModel extends BaseModel {
   }
 
   async findByPhoneNumber(phone_number: any) {
-    return this.query().where({ phone_number: phone_number }).first();
+    return await this.query().where({ phone_number: phone_number }).first();
+  }
+
+  async getSessionsByCompanyId(company_id:string){
+    return await this.query().where({company_id:company_id}).first()
   }
 
 }
