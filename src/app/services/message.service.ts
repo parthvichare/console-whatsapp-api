@@ -413,6 +413,8 @@ class MessageService {
   async sendChatBotMessage(phoneNumberId: string, to: string, response: any) {
     console.log('Response', JSON.stringify(response))
 
+    const{type} = response
+
     const phoneNumber = await PhoneNumberModel.findByPhoneNumberId(phoneNumberId);
     if (!phoneNumber) {
       console.warn(`Phone number not found: ${phoneNumberId}`);
