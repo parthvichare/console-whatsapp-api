@@ -47,6 +47,7 @@ class ContactService {
    * Get all contacts for a company
    */
   async getContacts(userId:string, filters: any = {}) {
+    console.log("User Id",userId)
     let query = ContactModel.findWithFilters(userId, filters);
 
     // Filter by tags
@@ -72,6 +73,7 @@ class ContactService {
     const offset = (page - 1) * limit;
 
     const contacts = await query.limit(limit).offset(offset);
+    console.log("Contacts",contacts)
 
     // Get tags for each contact
     if (contacts.length > 0) {

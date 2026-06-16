@@ -100,6 +100,7 @@ class ContactModel extends BaseModel {
   findWithFilters(userId: string, filters: any) {
     let query = this.query()
       .where({ user_id: userId })
+      .orWhere('assigned_to', userId)
       .whereNull('deleted_at');
 
     if (filters.is_valid !== undefined) {
