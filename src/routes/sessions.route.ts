@@ -6,6 +6,7 @@ const SessionRoute = Router();
 
 // Message operations - require authentication (applied at route group level)
 SessionRoute.get('/data',  sessionController.getStoredSessions);
+SessionRoute.put('/:queryId/data', sessionController.updateCustomerQuery)
 
 
 export default SessionRoute;

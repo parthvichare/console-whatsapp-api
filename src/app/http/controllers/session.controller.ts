@@ -23,6 +23,14 @@ class SessionController{
         const storedSessions = await sessionService.storedSession(req.companyId!,filters)
         successResponse(req, res, "Stored session retrived succesfully", storedSessions)
     })
+
+    updateCustomerQuery = tryCatchAsync(async (req: AuthRequest, res: Response) => {
+        const { queryId } = req.params
+        const updateSession = await sessionService.updateStoredSession(
+            req.companyId!, req.userId!, queryId, req.body
+        )
+        successResponse(req, res, "Update Query Session", updateSession)
+    })
 }
 
 export default new SessionController();
