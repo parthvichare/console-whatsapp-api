@@ -11,9 +11,17 @@ class SessionController{
      * GET
      * stored_chatbot_session_data
      */
-    getStoredSessions = tryCatchAsync(async(req:AuthRequest,res:Response)=>{
-        const storedSessions = await sessionService.storedSession(req.companyId!)
-        successResponse(req,res,"Stored session retrived succesfully",storedSessions)
+    getStoredSessions = tryCatchAsync(async (req: AuthRequest, res: Response) => {
+        const filters = {
+            status: req.query.status,
+            phone_number_id: req.query.phone_number,
+            search: req.query.search,
+            page: req.query.page,
+            limit: req.query.limit,
+        };
+
+        const storedSessions = await sessionService.storedSession(req.companyId!,filters)
+        successResponse(req, res, "Stored session retrived succesfully", storedSessions)
     })
 }
 
