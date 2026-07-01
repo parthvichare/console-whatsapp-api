@@ -22,7 +22,7 @@ AdminRoute.use(jwtAuthMiddleware);
 
 // Mount all admin routes
 AdminRoute.use('/companies', companyRoute);
-AdminRoute.use("/support",supportRoute)
+AdminRoute.use('/support',supportRoute);
 AdminRoute.use('/subscription', SubscriptionRoute);
 AdminRoute.use('/users', UserRoute);
 AdminRoute.use('/waba', WabaRoute);
@@ -33,7 +33,7 @@ AdminRoute.use('/contacts', ContactRoute);
 AdminRoute.use('/campaigns', CampaignRoute);
 AdminRoute.use('/webhooks', WebhookRoute);
 AdminRoute.use('/chatbot',chatBotRoute ); 
-AdminRoute.use('/session',SessionRoute)
+AdminRoute.use('/session',SessionRoute);
 
 // AdminRoute.use('/catalog',catalogRoute )
 

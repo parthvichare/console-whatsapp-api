@@ -23,6 +23,9 @@ const ApiRoute = Router();
 // Public routes - no authentication
 ApiRoute.use('/auth', AuthRoute); // Login, register
 
+// Public AI routes - no authentication
+// ApiRoute.use
+
 // Public webhook routes - no authentication (Meta webhooks validated with their own signature)
 ApiRoute.use('/webhooks', WebhookPublicRoute);
 
@@ -31,7 +34,6 @@ ApiRoute.use('/admin', AdminRoute);
 
 // API Consumer routes - API key authentication required (for programmatic access)
 ApiRoute.use('/api', ApiConsumerRoute);
-
 
 
 export default ApiRoute;

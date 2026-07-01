@@ -64,9 +64,10 @@ class CompanyController {
    */
   getById = tryCatchAsync(async (req: Request, res: Response) => {
     const { id } = req.params;
-    const company = await CompanyService.getCompanyById(id);
+    const company = await CompanyService.getUserById(id);
     return successResponse(req, res, 'Company retrieved successfully', company);
   });
+
 
   getUserStats = tryCatchAsync(async(req:AuthRequest,res:Response)=>{
     console.log("User Id",req.userId!)

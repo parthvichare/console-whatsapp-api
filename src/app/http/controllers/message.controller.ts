@@ -51,7 +51,7 @@ class MessageController {
    */
   sendPublicMessage = tryCatchAsync(async (req: AuthRequest, res: Response) => {
     const { user_id,company_id, phone_number_id, to, type,profile_name, text, template, image, video, document, audio, interactive, location, contacts, sticker, reaction, context, campaign_id } = req.body;
-
+    console.log("Req body",req.body)
     if (!phone_number_id || !to || !type || !user_id) {
       throw new HTTP400Error({ message: 'Phone number ID, recipient, and message type are required' });
     }
