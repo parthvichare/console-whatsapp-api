@@ -92,3 +92,4 @@ const uploadMedia = multer({
 // Export middleware
 export const uploadXLSXMiddleware = uploadXLSX.single('file');
 export const uploadMediaMiddleware = uploadMedia.single('file');
+export const uploadMutipleMedia = uploadMedia.array('images')

@@ -3,6 +3,9 @@ import HTTP400Error from '@surefy/exceptions/HTTP400Error';
 import { bucket } from '@surefy/config/firebase.config';
 import fs from 'fs';
 import path from 'path';
+import { ProductVariant } from '../interfaces/catalog.interface';
+import { productGroups } from '../interfaces/catalog.interface';
+
 
 class MetaService {
   private client: AxiosInstance;
@@ -337,6 +340,28 @@ class MetaService {
   }
 
   /**
+   * Create Variant in catalog 
+   */
+  async createProductVariantBatch(catalog_id:string,variant:ProductVariant):Promise<any>{
+    try{
+      console.log("Variant meta",variant,catalog_id)
+      const response = await this.client.post(`/${catalog_id}/batch`,{
+         requests: [
+            variant
+         ]
+      })
+      console.log("Response",response)
+      return response.data
+    }catch(error:any){
+      console.error('Meta API Error - Failed To Upload Variant in catalog',error.response?.data || error.message);
+      throw new HTTP400Error({
+        message: 'Failed to fetch phone number details from Meta API',
+        details: error.response?.data || error.message,
+      })
+    }
+  }
+
+  /**
    * Get WABA account details to verify it exists
    */
   async getWabaDetails(wabaId: string): Promise<any> {
@@ -372,6 +397,46 @@ class MetaService {
 
   // fallback
   throw error
+    }
+  }
+
+  /**
+   * Sync Catalog Variant Product
+   */
+  async syncCatalogVariant(catalogId: string): Promise<any> {
+    try {
+      const response = await this.client.get(`/${catalogId}/products`, {
+        params: {
+          fields: 'id,name,price,description,image_url,url,category,retailer_id,brand',
+        },
+      });
+      console.log("Response",response.data.data)
+      return response.data.data
+    } catch (error: any) {
+
+      console.error(
+        "❌ Raw Meta Error:",
+        error?.response?.data || error
+      )
+
+      // Preserve Meta API error
+      if (error?.response?.data?.error) {
+
+        const metaError = error.response.data.error
+
+        throw new HTTP400Error({
+          message: metaError.message,
+          details: {
+            type: metaError.type,
+            code: metaError.code,
+            subcode: metaError.error_subcode,
+            fbtrace_id: metaError.fbtrace_id
+          }
+        })
+      }
+
+      // fallback
+      throw error
     }
   }
 }
