@@ -179,6 +179,12 @@ class MessageController {
           // Handle incoming messages
           for (const message of value.messages || []) {
             console.log("Value",message)
+
+            if(message.type === 'order' && message.order && Array.isArray(message.order.product_items)){
+               message.productItems = message.order.product_items
+               await MessageService.processIncomingOrderMessage(message)
+            }
+
             await MessageService.saveIncomingMessage({
               phone_number_id: value.metadata.phone_number_id,
               profile_name: value.contacts?.[0]?.profile?.name || "",

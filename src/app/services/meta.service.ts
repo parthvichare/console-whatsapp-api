@@ -342,18 +342,21 @@ class MetaService {
   /**
    * Create Variant in catalog 
    */
-  async createProductVariantBatch(catalog_id:string,variant:ProductVariant):Promise<any>{
-    try{
-      console.log("Variant meta",variant,catalog_id)
-      const response = await this.client.post(`/${catalog_id}/batch`,{
-         requests: [
-            variant
-         ]
+  async createProductVariantBatch(catalog_id: string, variant: ProductVariant): Promise<any> {
+    try {
+      console.log("Variant meta", variant, catalog_id)
+      const response = await this.client.post(`/${catalog_id}/batch`, {
+        requests: [
+          variant
+        ]
       })
-      console.log("Response",response)
+      console.log(
+        JSON.stringify(response.data.validation_status, null, 2)
+      );
+
       return response.data
-    }catch(error:any){
-      console.error('Meta API Error - Failed To Upload Variant in catalog',error.response?.data || error.message);
+    } catch (error: any) {
+      console.error('Meta API Error - Failed To Upload Variant in catalog', error.response?.data || error.message);
       throw new HTTP400Error({
         message: 'Failed to fetch phone number details from Meta API',
         details: error.response?.data || error.message,

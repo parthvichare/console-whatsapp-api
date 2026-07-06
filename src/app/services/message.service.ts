@@ -14,7 +14,9 @@ import messageModel from '@surefy/console/models/message.model';
 import userModel from '../models/user.model';
 import { uploadImage } from '@surefy/config/firebase.config';
 import { downloadImage } from '@surefy/console/utils';
-
+import productVariantModel from '../models/productVariant.model';
+import axios from 'axios';
+import chatSessionModel from '../models/chatSession.model';
 
 class MessageService {
   /**
@@ -31,10 +33,10 @@ class MessageService {
   }
 
 
-    async getUserStats(userId:any){
-      const userStats = await userModel.getUserStats(userId)
-      return userStats
-    }
+  async getUserStats(userId: any) {
+    const userStats = await userModel.getUserStats(userId)
+    return userStats
+  }
 
   /**
    * Send message
@@ -372,7 +374,7 @@ class MessageService {
         const mediaUrl = await downloadImage(mediaId);
 
         content = {
-          type:type,
+          type: type,
           media_url: mediaUrl.firebaseUrl,
         };
       }
@@ -394,7 +396,7 @@ class MessageService {
       delivered_at: new Date(),
     });
 
-    console.log("Incoming Message stored",message)
+    console.log("Incoming Message stored", message)
 
     return message;
   }
@@ -402,18 +404,18 @@ class MessageService {
   /**
    * Get messages for company
    */
-  async getMessages(companyId: string,userId:string, filters: any = {}) {
-    return MessageModel.findByUserId(companyId,userId, filters);
+  async getMessages(companyId: string, userId: string, filters: any = {}) {
+    return MessageModel.findByUserId(companyId, userId, filters);
   }
 
 
-    /**
-   * Handle Send ChatBot message
-   */
+  /**
+ * Handle Send ChatBot message
+ */
   async sendChatBotMessage(phoneNumberId: string, to: string, response: any) {
     console.log('Response', JSON.stringify(response))
 
-    const{type} = response
+    const { type } = response
 
     const phoneNumber = await PhoneNumberModel.findByPhoneNumberId(phoneNumberId);
     if (!phoneNumber) {
@@ -440,7 +442,7 @@ class MessageService {
 
       console.log("Meta Payload Message Service", JSON.stringify(metaPayload))
       const metaResponse = await MetaService.sendMessage(phoneNumberId, metaPayload);
-      
+
       console.log("✅ Message Sent:", metaResponse);
 
 
@@ -529,13 +531,247 @@ class MessageService {
     return MessageModel.getMessageStats(companyId, fromDate, toDate);
   }
 
-  async getMessagesConversation(userId:string,phone_number_id:any){
-    return MessageModel.getMessagesConversation(userId,phone_number_id)
+  async getMessagesConversation(userId: string, phone_number_id: any) {
+    return MessageModel.getMessagesConversation(userId, phone_number_id)
   }
 
-  async getLeadConversations(leadNumber:any,phone_number_id:any,userId:string){
-    return MessageModel.getLeadConversations(leadNumber,phone_number_id,userId)
+  async getLeadConversations(leadNumber: any, phone_number_id: any, userId: string) {
+    return MessageModel.getLeadConversations(leadNumber, phone_number_id, userId)
+  }
+
+
+
+  //   static async processIncomingOrderMessage(msg: any) {
+  //     if (!msg || msg.type !== 'order' || !msg.order) {
+  //         throw new Error('Invalid order message');
+  //     }
+
+  //     const from = msg.from;
+  //     const phoneNumberId = msg.phoneNumberId || msg.phone_number_id;
+  //     const catalogId = msg.order.catalog_id;
+  //     const orderId = msg.id;
+
+  //     // 1. Build a map of productId to quantity from webhook payload
+  //     const quantityMap: Record<string, number> = {};
+  //     msg.order.product_items.forEach((item: any) => {
+  //         quantityMap[item.product_retailer_id] = item.quantity;
+  //     });
+
+  //     // 2. Fetch product details from DB
+  //     const productDetails = await productsModel.find({
+  //         retailer_id: { $in: msg.order.product_items.map((item: any) => item.product_retailer_id) }
+  //     });
+
+  //     // 3. Merge DB details with quantity from webhook
+  //     const orderDetails = (productDetails || []).map((product: any) => ({
+  //         productId: product.productId,
+  //         productName: product.name,
+  //         salePrice: product.price,
+  //         purchasePrice: product.purchasePrice,
+  //         quantity: quantityMap[product.retailer_id],
+  //         catalogType: product.catalogType,
+  //         image: product.image_url,
+  //         unit: product.unit,
+  //         discount: product.discount
+  //     })); 
+
+  //     console.log("Processing Order Details:", orderDetails);
+
+  //     // 4. Optionally, extract selectedProducts if you want just the IDs
+  //     const selectedProducts = orderDetails.map((item) => item.productId);
+
+  //     await whatsAppService.productOrderProcessor({
+  //         from,
+  //         selectedProducts,
+  //         catalogId,
+  //         orderId,
+  //         phoneNumberId,
+  //         orderDetails
+  //     });
+  // }
+
+
+  async processIncomingOrderMessage(msg: any) {
+    console.log("Message", msg)
+    console.log("Product Items", JSON.stringify(msg.order.product_items))
+    if (!msg || msg.type !== 'order' || !msg.order) {
+      throw new Error('Invalid order message');
+    }
+
+    const from = msg.from;
+    const phoneNumberId = msg.phoneNumberId || msg.phone_number_id;
+    const catalogId = msg.order.catalog_id;
+    const orderId = msg.id;
+
+    // 1. Build a map of productId to quantity from webhook payload
+    const quantityMap: Record<string, number> = {};
+    msg.order.product_items.forEach((item: any) => {
+      quantityMap[item.product_retailer_id] = item.quantity
+    })
+
+    // 2. Fetch product details from DB
+    const productDetails = await Promise.all(
+      msg.order.product_items.map((item: any) =>
+        productVariantModel.findByRetailerId(item.product_retailer_id)
+      )
+    );
+    console.log("Product details", productDetails)
+
+    // 3. Merge DB details with quantity from webhook
+    const orderDetails = productDetails
+      .filter(product => product)
+      .map((product: any) => ({
+        productId: product.id,
+        productName: product.name,
+        salePrice: product.price,
+        quantity: quantityMap[product.retailer_id],
+        catalogType: product.category_type,
+        image: product.image_url,
+        unit: product.unit,
+        discount: product.discount
+      }));
+
+    console.log("Processing Order Details:", orderDetails);
+
+    const selectedProducts = orderDetails.map((item: any) => item.productId);
+
+    await this.productOrderProcessor({
+      from,
+      selectedProducts,
+      catalogId,
+      orderId,
+      phoneNumberId,
+      orderDetails
+    });
+
+  }
+
+
+  async productOrderProcessor(data: any) {
+    const { from, selectedProducts, catalogId, orderId, phoneNumberId, orderDetails } = data
+    console.log("Processing Order",data)
+    const leadfpoId = await userModel.findByPhone(from)
+    const fpoNumber = await userModel.findById(leadfpoId.parent_user_id)
+
+    const { parent_user_id, role_id } = leadfpoId
+    const { phone } = fpoNumber
+
+    data.userId = parent_user_id,
+      data.roleId = role_id
+    data.phoneNumber = phone
+    console.log("Product Register Order:", data);
+
+    const registerleadOrder = await this.leadOrderConfirmation(data)
+
+    if (registerleadOrder?.data?.orderId && registerleadOrder?.data?.success === true) {
+      console.log("Order registered successfully with ID:", registerleadOrder.data.orderId);
+      // await OrderRepository.createOrder({
+      //     orderId,
+      //     from,
+      //     catalogId,
+      //     selectedProducts,
+      //     phoneNumberId,
+      // });
+
+      // Calculate total and format order summary
+      let total = 0;
+      let summary = "🛒 *Order Summary*\n";
+      if (orderDetails && Array.isArray(orderDetails)) {
+        orderDetails.forEach((item, idx) => {
+          // Use item.item_price from webhook, fallback to item.Price from DB
+          const price = Number(String(item.salePrice).replace(/[^\d.]/g, "")) || 0;
+          const quantity = Number(item.quantity) || 1;
+          total += price * quantity;
+          summary += `${idx + 1}. ${item.productName} x${quantity} - ₹${price}\n`;
+        });
+      } else if (selectedProducts && selectedProducts.length) {
+        selectedProducts.forEach((id: string, idx: number) => {
+          summary += `${idx + 1}. ${id}\n`;
+        });
+      }
+      summary += `\n*Total:* ₹${total}`;
+
+      // Generate payment link (replace with your payment logic)
+      const paymentLink = `https://your-payment-gateway.com/pay?orderId=${orderId}`;
+
+      // Find FPO ID for the user (from lead or session)
+      let fpoId = "";
+      try {
+        fpoId = data.userId || "";
+      } catch (e) {
+        fpoId = "";
+      }
+
+      // Send confirmation and payment link
+      await this.sendMessage({
+        user_id: data.userId,
+        company_id: leadfpoId.company_id,
+        phone_number_id: '760184003848443',
+        to: from,
+        type: "text",
+        text: {
+          body: `${summary}\n\n You have Order register successfully, Your Order-Id: ${String(registerleadOrder.data.orderId)}`
+        }
+      });
+    }
+  }
+
+  async leadOrderConfirmation(data: any) {
+    const { roleId, phoneNumber,from, userId, catalogType, orderDetails } = data;
+    let total = 0
+    console.log("Order Details", data)
+
+    if (orderDetails && Array.isArray(orderDetails)) {
+      orderDetails.forEach((item, idx) => {
+        const price = Number(String(item.salePrice).replace(/[^\d.]/g, "")) || 0;
+        const quantity = Number(item.quantity) || 1;
+        total += price * quantity;
+      })
+    }
+
+    console.log("Order Details for Confirmation:", JSON.stringify(orderDetails))
+    const payload = {
+      productId: `Product-${Date.now()}`,
+      firm: phoneNumber,
+      user_id: roleId,
+      type: "input",
+      status: "IN_PROCESS",
+      subtotal: total,
+      total_price: total,
+      total_discount: 0,
+      delivery_fees: 0,
+      total_fees: 0,
+      billing_type: "CASH",
+      createdById: userId,
+      mode_of_booking: "DELIVERY",
+      cart: orderDetails.map((item: any) => ({
+        product_name: item.productName,
+        qty: item.quantity,
+        unit: item.unit || 0,
+        sizeColor: null,
+        product_id: item.productId,
+        image: item.image,
+        category: [item.category],
+        subcategory: [item.subCategory],
+        price: item.salePrice,
+        discount: item.discount,
+        total_no: null
+      })),
+      is_deleted: false
+    }
+
+    console.log("Order Confirmation Payload:", JSON.stringify(payload), JSON.stringify(payload.cart))
+    const response = await axios.post("https://l07yapr0ub.execute-api.ap-south-1.amazonaws.com/prod/farmer-function/order", payload)
+    console.log("Order Confirmation Response:", response.data)
+
+    const existingSessions = await chatSessionModel.findByPhoneNumber(from)
+    console.log("Session",existingSessions)
+    if(existingSessions){
+      await chatSessionModel.update(existingSessions.id,{active:false})
+    }
+    return response
   }
 }
 
 export default new MessageService();
+

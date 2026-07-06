@@ -2,6 +2,7 @@ import UserModel from '../models/user.model';
 import CompanyModel from '../models/company.model';
 import HTTP400Error from '@surefy/exceptions/HTTP400Error';
 import HTTP401Error from '@surefy/exceptions/HTTP401Error';
+import HTTP404Error from '@surefy/exceptions/HTTP401Error';
 import * as bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import sendEmail from '../../utils';
@@ -11,6 +12,9 @@ import storesSessionModel from '../models/storesSession.model';
 import chatSessionModel from '../models/chatSession.model';
 import userModel from '../models/user.model';
 import phoneNumberModel from '../models/phoneNumber.model';
+import productGroupModel from '../models/productGroup.model';
+import productVariantModel from '../models/productVariant.model';
+
 
 interface LoginCredentials {
   identifier: string; // email or phone
@@ -420,6 +424,23 @@ class AuthService {
     const existUser = await userModel.findByPhone(phone_number)
     console.log("Existisng user", existUser)
     return existUser
+  }
+
+  async getProductVariants(category: string, catalog_id: string) {
+    console.log("Category", category, catalog_id)
+    const existingCategory = await productGroupModel.findGroupByCategory(category, catalog_id)
+    const existingProductVariant = await productVariantModel.findByCategory(category, catalog_id)
+    if (!existingCategory || !existingProductVariant || existingProductVariant.length === 0) {
+      return { success: false, message: "Product Variant with those category not exists" }
+    }
+    const retailerIds = existingProductVariant.map(
+      (product) => product.retailer_id
+    );
+
+    return {
+      success: true,
+      data: retailerIds,
+    };
   }
 }
 

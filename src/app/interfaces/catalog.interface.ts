@@ -4,7 +4,8 @@ export interface productGroups{
     user_id:string,
     group_name:string,
     categories:string[]
-    group_status:string
+    group_status:string,
+    catalog_id:string,
     group_item_counts?:number,
 }
 
@@ -15,7 +16,7 @@ export interface ProductVariantData{
     color?:string,
     size?:string,
 
-    price:string,
+    price:number,
     currency:string,
 
     availability:string,

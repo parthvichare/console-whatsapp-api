@@ -8,6 +8,7 @@ import axios from 'axios';
 import { parsePhoneNumberFromString } from "libphonenumber-js";
 import metaService from './app/services/meta.service';
 import { executeNode } from './app/services/chatbot/engine/executeNode';
+import catalogService from './app/services/catalog.service';
 
 export const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
@@ -406,7 +407,13 @@ export function replaceBodyVariables(
   });
 }
 
-export async function buildResponse(node: any, bot?:any,session?:any) {
+export async function buildProductMessage(category:string,catalog_id:string){
+  console.log("Build Product Message",catalog_id,category)
+  const getProductVariants = await catalogService.getProductVariants(category,catalog_id)
+  console.log("Product Variants",getProductVariants)
+}
+
+export async function buildResponse(node: any,session?:any, bot?:any) {
   console.log('NextNode', JSON.stringify(node))
   const data = safeJSON(node.data);
 
@@ -440,6 +447,53 @@ export async function buildResponse(node: any, bot?:any,session?:any) {
       type: "text",
       text,
     };
+  }
+
+  if (key === "@whatsapp/send-product-message") {
+    //Get catalog_id from message.action.catalog_id
+    //Get category from session.variable.category
+    //call catalogService pass the catalog_id,category
+    // create function buildProductMessage 
+    console.log("Product session", session.variables.category)
+    console.log("Product node", data.attributes.message.interactive.action.catalog_id)
+    const catalog_id = data.attributes.message.interactive.action.catalog_id
+    const category = session.variables.category
+    const productVariants = await catalogService.getProductVariants(category, catalog_id)
+    const productItems = productVariants.data?.map((id: string) => {
+      return {
+        product_retailer_id: id
+      };
+    })
+
+    console.log("Product Items", productItems)
+
+    return {
+      type: "interactive",
+
+      interactive: {
+        type: "product_list",
+
+        header: {
+          type: "text",
+          text: "View Krishivan Catalog"
+        },
+
+        body: {
+          text: "Select a product to place order"
+        },
+        action: {
+          catalog_id: catalog_id,
+          sections: [
+            {
+              title: `View selected ${category}`,
+              product_items: productItems
+            }
+          ]
+        }
+
+      }
+
+    }
   }
 
   // Button Interactive  

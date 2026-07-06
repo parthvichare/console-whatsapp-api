@@ -6,6 +6,7 @@ import HTTP400Error from '@surefy/exceptions/HTTP400Error';
 import productGroupModel from '../../models/productGroup.model';
 import catalogService from '../../services/catalog.service';
 import { errorResponse } from '@surefy/utils/Controller';
+import { request } from 'http';
 
 class catalogController {
     /**
@@ -13,13 +14,14 @@ class catalogController {
      * Create New Product Group
      */
     createProductGroup = tryCatchAsync(async (req: AuthRequest, res: Response) => {
-        const { group_name, categories } = req.body
+        const { group_name, categories,catalog_id } = req.body
         if (!Array.isArray(categories)) {
             throw new Error("Categories must be an array");
         }
         const productGroup = await catalogService.createGroup({
             group_name,
             categories,
+            catalog_id,
             user_id: req.userId!,
             company_id: req.companyId!,
             group_status: "active",
@@ -148,6 +150,26 @@ class catalogController {
             const{catalogId} = req.params
             const syncMetaCatalog = await catalogService.syncMetaCatalogVariant(catalogId)
             successResponse(req,res,"Sync Meta-variant successfully",syncMetaCatalog,HttpStatusCode.OK)
+        }catch(error:any){
+            return res.status(error.statusCode || 500).json({
+                success:false,
+                message:error.message || "Something went wrong"
+            })
+        }
+    })
+
+    /**
+     * GET /org-variants/sync
+     */
+    syncOrganizationVarinats = tryCatchAsync(async(req:Request,res:Response)=>{
+        try{
+            const authHeader:any = req.headers['authorization'];
+            const token = authHeader.substring(7)
+            console.log("JWT Auth Middleware - Authorization header:", token); // Debug log
+            const user_id = "ccc7bb1d-39b4-4d67-b687-c1a03a314146"
+            const company_id = "cb2a7274-f7c0-41e6-b752-71991edb699c"
+            const syncAllCatalog = await catalogService.syncOrganizationCatalog(user_id,company_id,token) 
+            successResponse(req,res,"Sync Meta-variant successfully",syncAllCatalog,HttpStatusCode.OK)
         }catch(error:any){
             return res.status(error.statusCode || 500).json({
                 success:false,

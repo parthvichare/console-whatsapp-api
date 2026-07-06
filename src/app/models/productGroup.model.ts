@@ -25,9 +25,10 @@ class productGroupModel extends BaseModel {
     return data
   }
 
-  async findGroupByCategory(category:string){
+  async findGroupByCategory(category:string,catalog_id?:string){
     return this.query()
     .whereRaw('categories @> ?::jsonb', [JSON.stringify([category])])
+    .orWhere('catalog_id',catalog_id)
     .first()
   }
   

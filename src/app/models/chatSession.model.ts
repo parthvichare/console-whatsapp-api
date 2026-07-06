@@ -24,6 +24,7 @@ class chatSessionModel extends BaseModel{
     async deactivateSessions(existing_session:any){
         return this.query().update(existing_session.id,{active:false})
     }
+
 }
 
 export default new chatSessionModel();

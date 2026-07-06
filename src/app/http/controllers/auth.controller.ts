@@ -7,6 +7,7 @@ import companyController from './company.controller';
 import companyService from '../../services/company.service';
 import sendEmail from '../../../utils';
 import { uploadImage } from '@surefy/config/firebase.config';
+import catalogService from '../../services/catalog.service';
 
 export interface JWTRequest extends Request {
   userId?: string;
@@ -254,6 +255,13 @@ class AuthController {
       console.log("Media", media_url)
       return res.status(200).json({success:true,message:"Media upload successfully", media_url:media_url })
     }
+  }
+
+  async getVariantByCategory(req:Request,res:Response){
+    const{session_data} = req.body
+    const{category,catalog_id} = session_data
+    const data = await catalogService.getProductVariants(category,catalog_id)
+    return res.status(200).json(data);
   }
 }
 
