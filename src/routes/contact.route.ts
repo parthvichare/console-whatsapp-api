@@ -24,7 +24,8 @@ ContactRoute.delete('/tags/:id', ContactController.deleteTag);
 // ContactRoute.post('/', checkPlanLimit('Contact'), ContactController.createContact);
 ContactRoute.post('/', ContactController.createContact);
 ContactRoute.get('/', ContactController.getContacts);
-ContactRoute.put('/:contactId/assigned',ContactController.assignedContactToUser)
+ContactRoute.post('/:contactId/assigned',ContactController.assignedContactToUser)
+ContactRoute.get('/:contactId/assigned',ContactController.getContactAssignedUser)
 ContactRoute.get('/:id', ContactController.getContactById);
 ContactRoute.put('/:id', ContactController.updateContact);
 ContactRoute.delete('/:id', ContactController.deleteContact);

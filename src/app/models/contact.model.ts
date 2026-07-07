@@ -135,6 +135,7 @@ class ContactModel extends BaseModel {
     let query = this.query()
     return query.where({user_id:userId}).orWhere({assigned_to:userId}).returning("*")
   }
+
 }
 
 export default new ContactModel();
