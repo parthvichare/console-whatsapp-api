@@ -535,8 +535,8 @@ class MessageService {
     return MessageModel.getMessagesConversation(userId, phone_number_id)
   }
 
-  async getLeadConversations(leadNumber: any, phone_number_id: any, userId: string) {
-    return MessageModel.getLeadConversations(leadNumber, phone_number_id, userId)
+  async getLeadConversations(leadNumber: any, phone_number_id: any, userId: string,time_frame:any) {
+    return MessageModel.getLeadConversations(leadNumber, phone_number_id, userId,time_frame)
   }
 
 

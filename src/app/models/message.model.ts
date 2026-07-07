@@ -14,21 +14,21 @@ class MessageModel extends BaseModel {
 
       // Campaign count
       .leftJoin(
-        this.db('campaigns').select('user_id').count('* as total_campaigns').groupBy('user_id',userId).as('cc'),
+        this.db('campaigns').select('user_id').count('* as total_campaigns').groupBy('user_id', userId).as('cc'),
         'cc.user_id',
         'u.id',
       )
 
       // Contacts count
       .leftJoin(
-        this.db('contacts').select('user_id').count('* as active_contacts').groupBy('user_id',userId).as('ct'),
+        this.db('contacts').select('user_id').count('* as active_contacts').groupBy('user_id', userId).as('ct'),
         'ct.user_id',
         'u.id',
       )
 
       // Leads count
       .leftJoin(
-        this.db('contact_lists').select('user_id').count('* as total_leads').groupBy('user_id',userId).as('lc'),
+        this.db('contact_lists').select('user_id').count('* as total_leads').groupBy('user_id', userId).as('lc'),
         'lc.user_id',
         'u.id',
       )
@@ -43,7 +43,7 @@ class MessageModel extends BaseModel {
           .sum({
             messages_received: this.db.raw("CASE WHEN direction = 'received' THEN 1 ELSE 0 END"),
           })
-          .groupBy('user_id',userId)
+          .groupBy('user_id', userId)
           .as('mc'),
         'mc.user_id',
         'u.id',
@@ -354,18 +354,53 @@ class MessageModel extends BaseModel {
   //     .orderBy('lm.created_at', 'desc');
   // }
 
-  async getLeadConversations(contactNumber: string, phone_number_id: string, userId: string) {
+  async getLeadConversations(
+    contactNumber: string,
+    phone_number_id: string,
+    userId: string,
+    time_frame: '7days' | '14days' | '1month' | 'all' = 'all'
+  ) {
     const db = this.db;
     const query = this.query();
 
     const normalizedNumber = contactNumber.slice(-10);
 
+    // Calculate date filter
+    let startDate: Date | null = null;
+
+    switch (time_frame) {
+      case '7days':
+        startDate = new Date();
+        startDate.setDate(startDate.getDate() - 7);
+        break;
+
+      case '14days':
+        startDate = new Date();
+        startDate.setDate(startDate.getDate() - 14);
+        break;
+
+      case '1month':
+        startDate = new Date();
+        startDate.setMonth(startDate.getMonth() - 1);
+        break;
+
+      case 'all':
+      default:
+        startDate = null;
+        break;
+    }
+
     const result = await query
       .leftJoin('templates as t', function () {
         this.on('t.id', '=', 'messages.template_id')
           .orOn((join) => {
-            join.on('t.name', '=', db.raw(`content->'template'->>'name'`))
-              .andOn('t.language', '=', db.raw(`content->'template'->'language'->>'code'`));
+            join
+              .on('t.name', '=', db.raw(`content->'template'->>'name'`))
+              .andOn(
+                't.language',
+                '=',
+                db.raw(`content->'template'->'language'->>'code'`)
+              );
           });
       })
       .select([
@@ -374,51 +409,60 @@ class MessageModel extends BaseModel {
         'messages.direction',
         'messages.type',
 
-        this.db.raw(`REPLACE(messages.from_phone, '+', '') AS from_phone`),
-        this.db.raw(`REPLACE(messages.to_phone, '+', '') AS to_phone`),
+        db.raw(`REPLACE(messages.from_phone, '+', '') AS from_phone`),
+        db.raw(`REPLACE(messages.to_phone, '+', '') AS to_phone`),
 
         'messages.status',
         'messages.created_at',
         'messages.content',
 
-        this.db.raw(`
-          CASE
-            WHEN messages.type = 'template'
-              THEN COALESCE(
-                NULLIF(messages.content->'template'->'components', '[]'::jsonb),
-                t.components,
-                '[]'::jsonb
-              )
-            ELSE NULL
-          END AS "templateComponents"
-        `),
+        db.raw(`
+        CASE
+          WHEN messages.type = 'template'
+            THEN COALESCE(
+              NULLIF(messages.content->'template'->'components', '[]'::jsonb),
+              t.components,
+              '[]'::jsonb
+            )
+          ELSE NULL
+        END AS "templateComponents"
+      `),
       ])
-      .where('phone_number_id', phone_number_id)
+      .where('messages.phone_number_id', phone_number_id)
+      .modify((qb) => {
+        if (startDate) {
+          qb.andWhere('messages.created_at', '>=', startDate);
+        }
+      })
       .andWhere((builder) => {
         builder
-          .whereRaw(`RIGHT(REPLACE(from_phone, '+', ''), 10) = ?`, [normalizedNumber])
-          .orWhereRaw(`RIGHT(REPLACE(to_phone, '+', ''), 10) = ?`, [normalizedNumber]);
+          .whereRaw(
+            `RIGHT(REPLACE(messages.from_phone, '+', ''), 10) = ?`,
+            [normalizedNumber]
+          )
+          .orWhereRaw(
+            `RIGHT(REPLACE(messages.to_phone, '+', ''), 10) = ?`,
+            [normalizedNumber]
+          );
       })
-      .orderBy('created_at', 'desc')
+      .orderBy('messages.created_at', 'desc')
       .limit(20);
 
     const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
     const now = Date.now();
 
-    let isWindowOpen = false; // 🔥 default CLOSED
+    let isWindowOpen = false;
 
     if (result.length > 0) {
-      // 🔥 find ANY template within last 24h
-      const validTemplate = result.find((msg) => {
-        if (msg.type !== 'template') return false;
+      // result is ordered by created_at DESC
+      const lastMessage = result[0];
 
-        const templateTime = new Date(msg.created_at).getTime();
-        return now - templateTime <= TWENTY_FOUR_HOURS;
-      });
+      const messageTime = new Date(lastMessage.created_at).getTime();
 
-      if (validTemplate) {
-        isWindowOpen = true; // ✅ OPEN only if template found in 24h
-      }
+      isWindowOpen =
+        lastMessage.type === 'template' &&
+        lastMessage.direction === 'inbound' &&
+        now - messageTime <= TWENTY_FOUR_HOURS;
     }
 
     return {

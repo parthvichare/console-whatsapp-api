@@ -245,8 +245,8 @@ class MessageController {
   })
 
   getLeadConversations = tryCatchAsync(async(req:AuthRequest,res:Response)=>{
-    const {phone_number_id,leadNumber} = req.query
-    const userMessages = await MessageService.getLeadConversations(leadNumber,phone_number_id, req.userId!)
+    const {phone_number_id,leadNumber,time_frame} = req.query
+    const userMessages = await MessageService.getLeadConversations(leadNumber,phone_number_id, req.userId!,time_frame)
     return successResponse(req,res,"Lead Message Retreived Succesfuly",userMessages)
   })
 

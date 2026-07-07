@@ -48,40 +48,57 @@ class ContactService {
    * Get all contacts for a company
    */
   async getContacts(userId: string, filters: any = {}) {
-    console.log("User Id", userId)
+    console.log('User Id', userId);
+
     let query = ContactModel.findWithFilters(userId, filters);
 
     // Filter by tags
-    if (filters.tag_ids && filters.tag_ids.length > 0) {
-      const contactIds = await ContactTagRelationModel.getContactIdsByTags(filters.tag_ids);
-      query = query.whereIn('id', contactIds);
+    if (filters.tag_ids?.length > 0) {
+      const contactIds =
+        await ContactTagRelationModel.getContactIdsByTags(filters.tag_ids);
+
+      query = query.whereIn('contacts.id', contactIds);
     }
 
     // Filter by lists
-    if (filters.list_ids && filters.list_ids.length > 0) {
-      const contactIds = await ContactListRelationModel.getContactIdsByLists(filters.list_ids);
-      query = query.whereIn('id', contactIds);
+    if (filters.list_ids?.length > 0) {
+      const contactIds =
+        await ContactListRelationModel.getContactIdsByLists(filters.list_ids);
+
+      query = query.whereIn('contacts.id', contactIds);
     }
 
-    // Get total count before pagination
-    const countQuery = query.clone();
-    const totalResult = await countQuery.count('* as count').first();
-    const total = parseInt(String(totalResult?.count || 0));
+    // Total count
+    const totalResult = await query
+      .clone()
+      .clearSelect()
+      .clearOrder()
+      .countDistinct('contacts.id as count')
+      .first();
+
+    const total = Number(totalResult?.count || 0);
 
     // Pagination
-    const page = parseInt(filters.page) || 1;
-    const limit = parseInt(filters.limit) || 20;
+    const page = Number(filters.page) || 1;
+    const limit = Number(filters.limit) || 20;
     const offset = (page - 1) * limit;
 
-    const contacts = await query.limit(limit).offset(offset);
-    console.log("Contacts", contacts)
+    const contacts = await query
+      .clone()
+      .limit(limit)
+      .offset(offset);
 
-    // Get tags for each contact
+    console.log('Contacts', contacts);
+
+    // Load tags
     if (contacts.length > 0) {
       const contactIds = contacts.map((c: any) => c.id);
-      const tagsData = await ContactTagRelationModel.getContactsWithTags(contactIds);
+
+      const tagsData =
+        await ContactTagRelationModel.getContactsWithTags(contactIds);
 
       const tagsMap = new Map();
+
       tagsData.forEach((item: any) => {
         tagsMap.set(item.contact_id, item.tags);
       });
@@ -625,41 +642,41 @@ class ContactService {
   // }
 
   async userAssignedContact(contactId: string, data: any) {
-    console.log("Contact",contactId,data)
+    console.log("Contact", contactId, data)
     const existingUserAssigned = await contactAssignmentModel.findByAssignedId(data.assigned_to)
-    console.log("EXISTING",existingUserAssigned)
-    if(existingUserAssigned){
-      const udpateContact = await contactAssignmentModel.update(existingUserAssigned.id,{
-        contact_id:contactId,
+    console.log("EXISTING", existingUserAssigned)
+    if (existingUserAssigned) {
+      const udpateContact = await contactAssignmentModel.update(existingUserAssigned.id, {
+        contact_id: contactId,
         assigned_to: data.assiged_to,
-        show_details:data.show_details,
+        show_details: data.show_details,
         can_chat: data.can_chat
       })
-      return udpateContact 
+      return udpateContact
     }
     const newContactAssigned = await contactAssignmentModel.create({
-      contact_id:contactId,
-      assigned_to:data.assigned_to,
-      show_details:data.show_details,
-      can_chat:data.can_chat
+      contact_id: contactId,
+      assigned_to: data.assigned_to,
+      show_details: data.show_details,
+      can_chat: data.can_chat
     })
     return newContactAssigned
   }
 
-  async getContactAssigingInfo(contactId:string){
+  async getContactAssigingInfo(contactId: string) {
     const contact = await contactModel.findById(contactId)
-    if(!contact){
-       throw new Error("User already assigned to this contact")
+    if (!contact) {
+      throw new Error("User already assigned to this contact")
     }
 
     const getAssignedInfo = await contactAssignmentModel.findByContactId(contactId)
     return getAssignedInfo
   }
 
-  async removeAssignedContact(contactId:string,assigned_to:any){
+  async removeAssignedContact(contactId: string, assigned_to: any) {
     const existingContactToUser = await contactAssignmentModel.findByAssignedId(assigned_to)
-    console.log("Existing contact",existingContactToUser)
-    if(!existingContactToUser){
+    console.log("Existing contact", existingContactToUser)
+    if (!existingContactToUser) {
       throw new Error(`Contact assigned to ${assigned_to} not found`)
     }
     const removeAssignedContact = await contactAssignmentModel.delete(existingContactToUser.id)

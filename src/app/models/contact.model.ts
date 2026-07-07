@@ -13,6 +13,7 @@ class ContactModel extends BaseModel {
       .first();
   }
 
+
   async findByCompany(companyId: string, filters: any = {}) {
     let query = this.query()
       .where({ company_id: companyId })
@@ -99,41 +100,37 @@ class ContactModel extends BaseModel {
 
   findWithFilters(userId: string, filters: any) {
     let query = this.query()
-      .where({ user_id: userId })
-      .orWhere('assigned_to', userId)
-      .whereNull('deleted_at');
+      .select('contacts.*')
+      .leftJoin(
+        'contact_assignments',
+        'contact_assignments.contact_id',
+        'contacts.id'
+      )
+      .where(function () {
+        this.where('contacts.user_id', userId)
+          .orWhere('contact_assignments.assigned_to', userId);
+      })
+      .whereNull('contacts.deleted_at');
 
     if (filters.is_valid !== undefined) {
-      query = query.where({ is_valid: filters.is_valid });
+      query = query.where('contacts.is_valid', filters.is_valid);
     }
 
     if (filters.search) {
       query = query.where((builder: Knex.QueryBuilder) => {
         builder
-          .whereILike('name', `%${filters.search}%`)
-          .orWhereILike('email', `%${filters.search}%`)
-          .orWhere('phone_number', 'like', `%${filters.search}%`);
+          .whereILike('contacts.name', `%${filters.search}%`)
+          .orWhereILike('contacts.email', `%${filters.search}%`)
+          .orWhere('contacts.phone_number', 'like', `%${filters.search}%`);
       });
-    }
-
-    if (filters.attributes) {
-      for (const [key, value] of Object.entries(filters.attributes)) {
-        if (
-          typeof value === 'string' ||
-          typeof value === 'number' ||
-          typeof value === 'boolean'
-        ) {
-          query = query.whereRaw(`attributes->>? = ?`, [key, value]);
-        }
-      }
     }
 
     return query;
   }
 
-  async getAssignedUser(userId:string){
+  async getAssignedUser(userId: string) {
     let query = this.query()
-    return query.where({user_id:userId}).orWhere({assigned_to:userId}).returning("*")
+    return query.where({ user_id: userId }).orWhere({ assigned_to: userId }).returning("*")
   }
 
 }
