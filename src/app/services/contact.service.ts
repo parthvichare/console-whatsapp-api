@@ -632,14 +632,16 @@ class ContactService {
       const udpateContact = await contactAssignmentModel.update(existingUserAssigned.id,{
         contact_id:contactId,
         assigned_to: data.assiged_to,
-        show_details:data.show_details
+        show_details:data.show_details,
+        can_chat: data.can_chat
       })
       return udpateContact 
     }
     const newContactAssigned = await contactAssignmentModel.create({
       contact_id:contactId,
       assigned_to:data.assigned_to,
-      show_details:data.show_details
+      show_details:data.show_details,
+      can_chat:data.can_chat
     })
     return newContactAssigned
   }

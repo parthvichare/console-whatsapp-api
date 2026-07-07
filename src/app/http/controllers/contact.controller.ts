@@ -342,11 +342,12 @@ class ContactController {
    * User Assigned Contact
    */
   assignedContactToUser = tryCatchAsync(async(req:AuthRequest,res:Response)=>{
-    const{ assigned_to, show_details }= req.query
+    const{ assigned_to, show_details,can_chat }= req.query
     const{contactId} = req.params
     const userAssignedContact = await ContactService.userAssignedContact(contactId,{
       assigned_to,
-      show_details
+      show_details,
+      can_chat
     })
     successResponse(req,res,`Contact assigned to ${assigned_to} successfully`,userAssignedContact, HttpStatusCode.OK)
   })
