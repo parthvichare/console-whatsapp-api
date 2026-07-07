@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import e, { Request, Response } from 'express';
 import { successResponse, tryCatchAsync } from '@surefy/utils/Controller';
 import { HttpStatusCode } from '@surefy/utils/HttpStatusCode';
 import ContactService from '@surefy/console/services/contact.service';
@@ -8,6 +8,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import userPlansModel from '../../models/userPlans.model';
 import contactService from '@surefy/console/services/contact.service';
+import { tryCatch } from 'bullmq';
 
 class ContactController {
   /**
@@ -360,6 +361,19 @@ class ContactController {
       `Info ${contactId} retrive successfully`,
       getUserAssignedContact,
       HttpStatusCode.OK
+    )
+  })
+
+  /**
+   * Remove assigned Contact
+   */
+  removeAssignedContact = tryCatchAsync(async(req:Request,res:Response)=>{
+    const{assigned_to} = req.query
+    const{contactId}  = req.params
+    const removeAssignedContact =  await ContactService.removeAssignedContact(contactId,assigned_to)
+    successResponse(req,res,
+      `Assigned ${contactId} delete successfully`,
+      HttpStatusCode.ACCEPTED
     )
   })
 }

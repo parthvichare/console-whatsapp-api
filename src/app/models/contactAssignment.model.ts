@@ -6,7 +6,7 @@ class ContactModel extends BaseModel {
     super('contact_assignments');
   }
 
-  async findByUserId(assigned_to:string){
+  async findByAssignedId(assigned_to:string){
     return this.query().where('assigned_to',assigned_to).first()
   }
 

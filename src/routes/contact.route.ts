@@ -26,6 +26,7 @@ ContactRoute.post('/', ContactController.createContact);
 ContactRoute.get('/', ContactController.getContacts);
 ContactRoute.post('/:contactId/assigned',ContactController.assignedContactToUser)
 ContactRoute.get('/:contactId/assigned',ContactController.getContactAssignedUser)
+ContactRoute.delete('/:contactId/removeAssignment',ContactController.removeAssignedContact)
 ContactRoute.get('/:id', ContactController.getContactById);
 ContactRoute.put('/:id', ContactController.updateContact);
 ContactRoute.delete('/:id', ContactController.deleteContact);
