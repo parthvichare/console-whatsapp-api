@@ -100,12 +100,16 @@ class ContactModel extends BaseModel {
 
   findWithFilters(userId: string, filters: any) {
     let query = this.query()
-      .select('contacts.*')
-      .leftJoin(
-        'contact_assignments',
-        'contact_assignments.contact_id',
-        'contacts.id'
+      .distinct('contacts.*')
+      .select(
+        'contacts.*',
+        'contact_assignments.show_details',
+        'contact_assignments.can_chat'
       )
+      .leftJoin('contact_assignments', function () {
+        this.on('contact_assignments.contact_id', '=', 'contacts.id')
+          .andOnVal('contact_assignments.assigned_to', userId);
+      })
       .where(function () {
         this.where('contacts.user_id', userId)
           .orWhere('contact_assignments.assigned_to', userId);
@@ -123,6 +127,21 @@ class ContactModel extends BaseModel {
           .orWhereILike('contacts.email', `%${filters.search}%`)
           .orWhere('contacts.phone_number', 'like', `%${filters.search}%`);
       });
+    }
+
+    if (filters.attributes) {
+      for (const [key, value] of Object.entries(filters.attributes)) {
+        if (
+          typeof value === 'string' ||
+          typeof value === 'number' ||
+          typeof value === 'boolean'
+        ) {
+          query = query.whereRaw(
+            `contacts.attributes->>? = ?`,
+            [key, String(value)]
+          );
+        }
+      }
     }
 
     return query;

@@ -458,7 +458,8 @@ export async function buildResponse(node: any,session?:any, bot?:any) {
     console.log("Product node", data.attributes.message.interactive.action.catalog_id)
     const catalog_id = data.attributes.message.interactive.action.catalog_id
     const category = session.variables.category
-    const productVariants = await catalogService.getProductVariants(category, catalog_id)
+    const subCategory = session.variables.sub_category
+    const productVariants = await catalogService.getProductVariants(category, catalog_id,subCategory)
     const productItems = productVariants.data?.map((id: string) => {
       return {
         product_retailer_id: id
