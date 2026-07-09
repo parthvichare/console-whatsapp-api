@@ -10,11 +10,15 @@ export async function up(knex: Knex): Promise<void> {
     table.string('password', 255).notNullable(); // Hashed password
     table.enum('role', ['superadmin', 'admin', 'company']).notNullable().defaultTo('company');
     table.enum('status', ['active', 'inactive', 'suspended']).defaultTo('active');
+    table.uuid('parent_user_id').references('id').inTable('users').onDelete('CASCADE');
     table.string('avatar', 500);
     table.jsonb('permissions'); // Additional granular permissions
     table.jsonb('settings'); // User preferences
     table.timestamp('last_login_at');
     table.string('last_login_ip', 50);
+    table.string('native_language').nullable();
+    table.string('role_id').nullable();
+    table.string('user_role').nullable();
     table.timestamp('created_at').defaultTo(knex.fn.now());
     table.timestamp('updated_at').defaultTo(knex.fn.now());
     table.timestamp('deleted_at');

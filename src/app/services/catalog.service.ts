@@ -93,8 +93,8 @@ class catalogService {
                 url: variant.url || "https://example.com",
 
                 gst: variant.gst,
-                sub_category: variant.subCategoryName,
-                category: variant.categoryName,
+                sub_category: variant.subCategoryName.toLowerCase(),
+                category: variant.categoryName.toLowerCase(),
 
                 product_added_by: variant.user_id,
                 meta_status: "synced",
@@ -389,10 +389,10 @@ class catalogService {
     /**
      * Get Product Variant data
      */
-    async getProductVariants(category: string, catalog_id: string, sub_category?:string) {
+    async getProductVariants(category: string, catalog_id: string) {
         console.log("Category", category, catalog_id)
         const existingCategory = await productGroupModel.findGroupByCategory(category, catalog_id)
-        const existingProductVariant = await productVariantModel.findByCategory(category, catalog_id,sub_category)
+        const existingProductVariant = await productVariantModel.findByCategory(category, catalog_id,)
         if (!existingCategory || !existingProductVariant || existingProductVariant.length === 0) {
             return { success: false, message: "Product Variant with those category not exists" }
         }

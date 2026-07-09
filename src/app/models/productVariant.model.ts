@@ -22,11 +22,10 @@ class productVariantModel extends BaseModel {
         return query
     }
 
-    async findByCategory(category:string,catalog_id:string,sub_category?:any){
+    async findByCategory(category:string,catalog_id:string){
         const query = this.query()
            .where('catalog_id',catalog_id)
            .andWhere('category',category)
-           .orWhere('sub_category',sub_category)
            .whereNull('deleted_at')
         return query
     }
