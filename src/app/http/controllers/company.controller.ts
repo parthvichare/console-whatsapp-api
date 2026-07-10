@@ -253,9 +253,9 @@ async checkUserPlanStatus(req: AuthRequest, res: Response) {
   }
 
   async updateUser(req: Request, res: Response) {
-    const { id } = req.params;
-    const company = await CompanyService.updateUser(id, req.body);
-    return successResponse(req, res, 'Company updated successfully', company);
+    const { userId } = req.params;
+    const company = await CompanyService.updateUser(userId, req.body);
+    return successResponse(req, res, 'User updated successfully', company);
   };
 
 

@@ -656,8 +656,8 @@ class MessageService {
     const { parent_user_id, role_id } = leadfpoId
     const { phone } = fpoNumber
 
-    data.userId = parent_user_id,
-      data.roleId = role_id
+    data.userId = parent_user_id,  
+    data.roleId = role_id
     data.phoneNumber = phone
     console.log("Product Register Order:", data);
 

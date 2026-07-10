@@ -573,48 +573,6 @@ class CompanyService {
     return updateUser
   }
 
-  //   async createUser(
-  //   companyId: string,
-  //   userData: {
-  //     name: string;
-  //     email?: string;
-  //     phone?: string;
-  //     password: string;
-  //     role: string;
-  //     permissions?: string[]; // from frontend slider
-  //   }
-  // ) {
-  //   // 1. Check existing user
-  //   const existingUser = await userModel.findByEmail(userData.email);
-
-  //   if (existingUser) {
-  //     throw new HTTP400Error({ message: 'User with this email already exists' });
-  //   }
-
-  //   // 2. Create user
-  //   const createdUser = await AuthService.register({
-  //     name: userData.name,
-  //     company_id: companyId,
-  //     email: userData.email,
-  //     phone: userData.phone,
-  //     password: userData.password
-  //   });
-
-  //   // 3. Assign permissions (if provided)
-  //   if (createdUser && userData.permissions?.length) {
-  //     const permissionRows = userData.permissions.map((permId) => ({
-  //       user_id: createdUser.id,
-  //       permission_id: permId
-  //     }));
-
-  //     await knex('user_permissions')
-  //       .insert(permissionRows)
-  //       .onConflict(['user_id', 'permission_id'])
-  //       .ignore();
-  //   }
-
-  //   return createdUser;
-  // }
 }
 
 export default new CompanyService();

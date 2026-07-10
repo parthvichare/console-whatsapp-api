@@ -14,7 +14,7 @@ UserRoute.get('/reminder',CompanyController.getReminders)
 
 UserRoute.get('/all', CompanyController.getAll);
 UserRoute.get('/:userId', CompanyController.getUserById);
-UserRoute.put('/:id', CompanyController.updateUser);
+UserRoute.put('/:userId', CompanyController.updateUser);
 UserRoute.delete('/:id', CompanyController.deleteCompanyUser);
 UserRoute.post('/:id/regenerate-keys', CompanyController.regenerateKeys);
 
