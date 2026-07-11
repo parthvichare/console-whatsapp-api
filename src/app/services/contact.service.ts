@@ -643,19 +643,17 @@ class ContactService {
 
   async userAssignedContact(contactId: string, data: any) {
     console.log("Contact", contactId, data)
-    const existingAssignment = await contactAssignmentModel.findOne({
-      contact_id: contactId,
-      assigned_to: data.assigned_to
-    })
-    console.log("EXISTING ASSIGNMENT", existingAssignment)
-    if (existingAssignment) {
-      const updateContact = await contactAssignmentModel.update(existingAssignment.id, {
+    // const existingUserAssigned = await contactAssignmentModel.findByAssignedId(data.assigned_to)
+    const existingContactAssignedUser = await contactAssignmentModel.findContactAssigned(data.assigned_to,contactId)
+    console.log("EXISTING", existingContactAssignedUser )
+    if (existingContactAssignedUser) {
+      const udpateContact = await contactAssignmentModel.update(existingContactAssignedUser.id, {
         contact_id: contactId,
-        assigned_to: data.assigned_to,
+        assigned_to: data.assiged_to,
         show_details: data.show_details,
         can_chat: data.can_chat
       })
-      return updateContact
+      return udpateContact
     }
     const newContactAssigned = await contactAssignmentModel.create({
       contact_id: contactId,
@@ -677,15 +675,12 @@ class ContactService {
   }
 
   async removeAssignedContact(contactId: string, assigned_to: any) {
-    const existingAssignment = await contactAssignmentModel.findOne({
-      contact_id: contactId,
-      assigned_to: assigned_to
-    })
-    console.log("Existing assignment", existingAssignment)
-    if (!existingAssignment) {
-      throw new Error(`Contact assignment not found`)
+    const existingContactToUser = await contactAssignmentModel.findByAssignedId(assigned_to)
+    console.log("Existing contact", existingContactToUser)
+    if (!existingContactToUser) {
+      throw new Error(`Contact assigned to ${assigned_to} not found`)
     }
-    const removeAssignedContact = await contactAssignmentModel.delete(existingAssignment.id)
+    const removeAssignedContact = await contactAssignmentModel.delete(existingContactToUser.id)
     return removeAssignedContact
   }
 }
