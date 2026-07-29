@@ -175,6 +175,26 @@ class ContactService {
       throw new HTTP404Error({ message: 'Contact not found' });
     }
 
+    // Delete related contact_assignments first to avoid FK constraint violation
+    await contactAssignmentModel.deleteByContactId(contactId);
+
+    // Delete messages and chat_sessions associated with contact's phone number
+    if (contact.phone_number) {
+      const cleanPhone = String(contact.phone_number).replace(/\D/g, '');
+      const normalizedNumber = cleanPhone.length >= 10 ? cleanPhone.slice(-10) : cleanPhone;
+      if (normalizedNumber) {
+        const knex = ContactModel.db;
+        await knex('messages')
+          .whereRaw(`RIGHT(REPLACE(from_phone, '+', ''), 10) = ?`, [normalizedNumber])
+          .orWhereRaw(`RIGHT(REPLACE(to_phone, '+', ''), 10) = ?`, [normalizedNumber])
+          .del();
+
+        await knex('chat_sessions')
+          .whereRaw(`RIGHT(REPLACE(phone_number, '+', ''), 10) = ?`, [normalizedNumber])
+          .del();
+      }
+    }
+
     await ContactModel.delete(contactId);
   }
 
@@ -643,17 +663,19 @@ class ContactService {
 
   async userAssignedContact(contactId: string, data: any) {
     console.log("Contact", contactId, data)
-    // const existingUserAssigned = await contactAssignmentModel.findByAssignedId(data.assigned_to)
-    const existingContactAssignedUser = await contactAssignmentModel.findContactAssigned(data.assigned_to,contactId)
-    console.log("EXISTING", existingContactAssignedUser )
-    if (existingContactAssignedUser) {
-      const udpateContact = await contactAssignmentModel.update(existingContactAssignedUser.id, {
+    const existingAssignment = await contactAssignmentModel.findOne({
+      contact_id: contactId,
+      assigned_to: data.assigned_to
+    })
+    console.log("EXISTING ASSIGNMENT", existingAssignment)
+    if (existingAssignment) {
+      const updateContact = await contactAssignmentModel.update(existingAssignment.id, {
         contact_id: contactId,
-        assigned_to: data.assiged_to,
+        assigned_to: data.assigned_to,
         show_details: data.show_details,
         can_chat: data.can_chat
       })
-      return udpateContact
+      return updateContact
     }
     const newContactAssigned = await contactAssignmentModel.create({
       contact_id: contactId,
@@ -675,12 +697,15 @@ class ContactService {
   }
 
   async removeAssignedContact(contactId: string, assigned_to: any) {
-    const existingContactToUser = await contactAssignmentModel.findByAssignedId(assigned_to)
-    console.log("Existing contact", existingContactToUser)
-    if (!existingContactToUser) {
-      throw new Error(`Contact assigned to ${assigned_to} not found`)
+    const existingAssignment = await contactAssignmentModel.findOne({
+      contact_id: contactId,
+      assigned_to: assigned_to
+    })
+    console.log("Existing assignment", existingAssignment)
+    if (!existingAssignment) {
+      throw new Error(`Contact assignment not found`)
     }
-    const removeAssignedContact = await contactAssignmentModel.delete(existingContactToUser.id)
+    const removeAssignedContact = await contactAssignmentModel.delete(existingAssignment.id)
     return removeAssignedContact
   }
 }
