@@ -18,6 +18,6 @@ class ContactModel extends BaseModel {
     return this.query().where('contact_id',contactId).andWhere('assigned_to',assigned_to).first()
   }
 
-}
+} 
 
 export default new ContactModel()
