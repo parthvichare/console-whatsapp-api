@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import e, { Request, Response } from 'express';
 import { successResponse, tryCatchAsync } from '@surefy/utils/Controller';
 import { HttpStatusCode } from '@surefy/utils/HttpStatusCode';
 import ContactService from '@surefy/console/services/contact.service';
@@ -8,6 +8,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import userPlansModel from '../../models/userPlans.model';
 import contactService from '@surefy/console/services/contact.service';
+import { tryCatch } from 'bullmq';
 
 class ContactController {
   /**
@@ -341,9 +342,40 @@ class ContactController {
    * User Assigned Contact
    */
   assignedContactToUser = tryCatchAsync(async(req:AuthRequest,res:Response)=>{
-    const {userId} = req.body
-    const userAssignedContact = await ContactService.userAssignedContact(req.userId!)
-    successResponse(req,res,"Assigned Contact Fetch",userAssignedContact, HttpStatusCode.OK)
+    const{ assigned_to, show_details,can_chat }= req.query
+    const{contactId} = req.params
+    const userAssignedContact = await ContactService.userAssignedContact(contactId,{
+      assigned_to,
+      show_details,
+      can_chat
+    })
+    successResponse(req,res,`Contact assigned to ${assigned_to} successfully`,userAssignedContact, HttpStatusCode.OK)
+  })
+
+  /**
+   * Assigned Contact to user
+   */
+  getContactAssignedUser = tryCatchAsync(async(req:Request,res:Response)=>{
+    const{contactId} = req.params
+    const getUserAssignedContact = await ContactService.getContactAssigingInfo(contactId)
+    successResponse(req,res,
+      `Info ${contactId} retrive successfully`,
+      getUserAssignedContact,
+      HttpStatusCode.OK
+    )
+  })
+
+  /**
+   * Remove assigned Contact
+   */
+  removeAssignedContact = tryCatchAsync(async(req:Request,res:Response)=>{
+    const{assigned_to} = req.query
+    const{contactId}  = req.params
+    const removeAssignedContact =  await ContactService.removeAssignedContact(contactId,assigned_to)
+    successResponse(req,res,
+      `Assigned ${contactId} delete successfully`,
+      HttpStatusCode.ACCEPTED
+    )
   })
 }
 
