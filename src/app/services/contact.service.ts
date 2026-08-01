@@ -9,8 +9,8 @@ import HTTP400Error from '@surefy/exceptions/HTTP400Error';
 import HTTP404Error from '@surefy/exceptions/HTTP404Error';
 import { contactImportQueue } from '../../queues/contactImport.queue';
 import * as path from 'path';
-import contactAssignmentModel from '@surefy/console/models/contactAssignment.model';
-import contactModel from '@surefy/console/models/contact.model';
+import contactAssignmentModel from '../models/contactAssignment.model'
+import contactModel from '../models/contact.model';
 
 
 class ContactService {
@@ -64,8 +64,13 @@ class ContactService {
     }
 
     // Get total count before pagination
-    const countQuery = query.clone();
-    const totalResult = await countQuery.count('* as count').first();
+
+    const totalResult = await query
+      .clone()
+      .clearSelect()
+      .clearOrder()
+      .countDistinct('contacts.id as count')
+      .first();
     const total = parseInt(String(totalResult?.count || 0));
 
     // Pagination
@@ -625,41 +630,41 @@ class ContactService {
   // }
 
   async userAssignedContact(contactId: string, data: any) {
-    console.log("Contact",contactId,data)
+    console.log("Contact", contactId, data)
     const existingUserAssigned = await contactAssignmentModel.findByAssignedId(data.assigned_to)
-    console.log("EXISTING",existingUserAssigned)
-    if(existingUserAssigned){
-      const udpateContact = await contactAssignmentModel.update(existingUserAssigned.id,{
-        contact_id:contactId,
+    console.log("EXISTING", existingUserAssigned)
+    if (existingUserAssigned) {
+      const udpateContact = await contactAssignmentModel.update(existingUserAssigned.id, {
+        contact_id: contactId,
         assigned_to: data.assiged_to,
-        show_details:data.show_details,
+        show_details: data.show_details,
         can_chat: data.can_chat
       })
-      return udpateContact 
+      return udpateContact
     }
     const newContactAssigned = await contactAssignmentModel.create({
-      contact_id:contactId,
-      assigned_to:data.assigned_to,
-      show_details:data.show_details,
-      can_chat:data.can_chat
+      contact_id: contactId,
+      assigned_to: data.assigned_to,
+      show_details: data.show_details,
+      can_chat: data.can_chat
     })
     return newContactAssigned
   }
 
-  async getContactAssigingInfo(contactId:string){
+  async getContactAssigingInfo(contactId: string) {
     const contact = await contactModel.findById(contactId)
-    if(!contact){
-       throw new Error("User already assigned to this contact")
+    if (!contact) {
+      throw new Error("User already assigned to this contact")
     }
 
     const getAssignedInfo = await contactAssignmentModel.findByContactId(contactId)
     return getAssignedInfo
   }
 
-  async removeAssignedContact(contactId:string,assigned_to:any){
+  async removeAssignedContact(contactId: string, assigned_to: any) {
     const existingContactToUser = await contactAssignmentModel.findByAssignedId(assigned_to)
-    console.log("Existing contact",existingContactToUser)
-    if(!existingContactToUser){
+    console.log("Existing contact", existingContactToUser)
+    if (!existingContactToUser) {
       throw new Error(`Contact assigned to ${assigned_to} not found`)
     }
     const removeAssignedContact = await contactAssignmentModel.delete(existingContactToUser.id)
