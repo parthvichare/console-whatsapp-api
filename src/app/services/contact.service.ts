@@ -9,8 +9,8 @@ import HTTP400Error from '@surefy/exceptions/HTTP400Error';
 import HTTP404Error from '@surefy/exceptions/HTTP404Error';
 import { contactImportQueue } from '../../queues/contactImport.queue';
 import * as path from 'path';
-import contactAssignmentModel from '../models/contactAssignmet.model';
-import contactModel from '../models/contact.model';
+import contactAssignmentModel from '@surefy/console/models/contactAssignmet.model';
+import contactModel from '@surefy/console/models/contact.model';
 
 
 class ContactService {
