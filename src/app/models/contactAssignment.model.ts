@@ -1,7 +1,7 @@
 import { BaseModel } from '@surefy/models/base.model';
 import { Knex } from 'knex';
 
-class ContactAssignmentModel extends BaseModel {
+class contactAssignmentModel extends BaseModel {
   constructor() {
     super('contact_assignments');
   }
@@ -20,4 +20,4 @@ class ContactAssignmentModel extends BaseModel {
 
 }
 
-export default new ContactAssignmentModel()
+export default new contactAssignmentModel()
